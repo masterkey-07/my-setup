@@ -1,0 +1,59 @@
+echo "To Home"
+cd ~
+
+echo "First Install"
+sudo apt install software-properties-common apt-transport-https wget
+
+echo "Creating Base Folders"
+mkdir .config Knowlodge Repositories Playground .fonts
+mkdir .config/kitty .config/zathura
+
+echo "Setting Up Google"
+wget -q https://dl-ssl.google.com/linux/linux_signing_key.pub -O- | sudo apt-key add -
+sudo add-apt-repository "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main"
+
+echo "Setting Up VSCode"
+wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add -
+sudo add-apt-repository "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"
+
+echo "Update System"
+sudo apt update
+
+echo "Installing Favorite Softwares"
+sudo apt install build-essential curl zsh fzf zoxide code zathura gh git google-chrome-stable kitty unzip zip emacs cargo fd-find
+
+echo "Installing Starship"
+curl -sS https://starship.rs/install.sh | sh
+
+echo "Installing Rust Softwares"
+
+cargo install exa ytop procs tokei 
+
+echo "ZSH Plugins"
+git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+git clone https://github.com/mrjohannchang/zsh-interactive-cd.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-interactive-cd
+git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+
+echo "ZSH Config"
+curl https://gist.githubusercontent.com/masterkey-07/d83edb75e75f34ef982877ba0cc7f4d1/raw/f2baace840ff94235200b1b663af3abe59f07097/zshrc > .zshrc
+
+echo "Kitty Config"
+curl https://gist.githubusercontent.com/masterkey-07/d83edb75e75f34ef982877ba0cc7f4d1/raw/f2baace840ff94235200b1b663af3abe59f07097/kitty.conf > .config/kitty/kitty.conf
+
+echo "My Zathura Config"
+curl https://gist.githubusercontent.com/masterkey-07/d83edb75e75f34ef982877ba0cc7f4d1/raw/f2baace840ff94235200b1b663af3abe59f07097/zathurarc > .config/zathura/zathurarc
+
+echo "Github Login"
+gh auth login
+
+echo "My Knowlodge"
+gh repo clone Obsidian-Knowlodge Knowlodge
+
+echo "My Fucking College"
+gh repo clone college-projects College
+
+echo "Fat Shit"
+sudo apt install texlive-full
+
+echo "Download Obsidian!"
+google-chrome --new-window https://github.com/obsidianmd/obsidian-releases/tags
