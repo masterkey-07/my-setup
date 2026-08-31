@@ -5,8 +5,6 @@
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
 
-export PATH=$PATH:/home/vjchave/.asdf/installs/python/3.11.0/bin:/home/vjchave/.asdf/installs/rust/1.65.0/bin
-
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time oh-my-zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
@@ -106,9 +104,6 @@ source $ZSH/oh-my-zsh.sh
 eval "$(starship init zsh)"
 eval "$(zoxide init zsh)"
 
-# ASDF
-source $HOME/.asdf/asdf.sh
-
 # WINDOWS ALIAS
 alias cls="clear"
 alias del="rm"
@@ -141,24 +136,16 @@ alias ls="exa --icons -la"
 alias l="exa --icons"
 alias cd="z"
 
-# PYTHON ALIAS
-alias create-venv="python -m venv venv"
-alias start-venv="source venv/bin/activate"
-alias remove-venv="rm venv -rf"
-
 # KITTY ALIAS
 alias icat="kitty +kitten icat"
 
 
 # APPLICATION ALIAS
-alias nano="nano"
 alias run="xdg-open"
 alias terminal="gnome-terminal"
 alias disk="ncdu"
 alias vim="nvim"
 alias emacs="emacs -nw"
-alias npm="pnpm"
-alias update-pnpm="curl -fsSL https://get.pnpm.io/install.sh | sh -"
 
 # COMMAND ALIAS
 alias reload="source ~/.zshrc"
