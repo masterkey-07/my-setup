@@ -1,0 +1,2 @@
+# Discord comes from its .deb in scripts/50-apps.sh
+claude-desktop anydesk

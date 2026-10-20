@@ -1,0 +1,3 @@
+#!/bin/sh
+# Area screenshot (bound to $mod+p in the i3 config)
+exec flameshot gui

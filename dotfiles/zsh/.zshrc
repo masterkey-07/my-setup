@@ -1,21 +1,9 @@
+
 # If you come from bash you might have to change your $PATH.
-    # export PATH=$HOME/bin:/usr/local/bin:$PATH
+# export PATH=$HOME/bin:/usr/local/bin:$PATH
 
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
-
-# Setup Base Path
-export PATH=$PATH:/home/vjchave/.asdf/installs/python/3.11.0/bin:/home/vjchave/.asdf/installs/rust/1.65.0/bin:/home/vjchave/.cargo/bin:/home/vjchave/.asdf
-
-# Setup ASDF
-export ASDF_DATA_DIR="/home/vjchave/.asdf/data"
-
-export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
-
-# append completions to fpath
-fpath=(${ASDF_DATA_DIR:-$HOME/.asdf}/completions $fpath)
-# initialise completions with ZSH's compinit
-autoload -Uz compinit && compinit
 
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time oh-my-zsh is loaded, in which case,
@@ -120,11 +108,10 @@ eval "$(zoxide init zsh)"
 alias cls="clear"
 alias del="rm"
 alias copy="cp"
-alias del="rm"
 alias ren="mv"
 alias move='mv'
 
-# NAV ALIAS
+# NAVIGATION ALIAS
 alias ff="run \"\$(readlink -f \"\$(find . --type f | fzf --preview 'bat --style numbers,changes --color=always {}')\")\""
 alias gf="cd \"\$(dirname \"\$(readlink -f \"\$(find . --type f | fzf)\")\")\""
 alias gd="cd \"\$(readlink -f \"\$(find . --type d | fzf)\")\""
@@ -139,59 +126,68 @@ alias remove="sudo apt remove"
 alias update-system="update && upgrade && dist-upgrade && autoremove"
 
 # RUST CLI ALIAS
-alias analyze="ytop"
+alias analyze="btm"
 alias top="procs"
 alias hell="tokei"
 alias find="fdfind"
-alias dir="exa -a -1"
-alias ls="exa --icons -la"
-alias l="exa -a -1"
+alias dir="eza --icons"
+alias ls="eza --icons -la"
+alias l="eza --icons"
 alias cd="z"
-
-# PYTHON ALIAS
-alias create-venv="python -m venv venv"
-alias start-venv="source venv/bin/activate"
-alias remove-venv="rm venv -rf"
 
 # KITTY ALIAS
 alias icat="kitty +kitten icat"
 
-
 # APPLICATION ALIAS
-alias nano="nano"
 alias run="xdg-open"
 alias terminal="gnome-terminal"
 alias disk="ncdu"
 alias vim="nvim"
 alias emacs="emacs -nw"
-alias update-pnpm="curl -fsSL https://get.pnpm.io/install.sh | sh -"
 
 # COMMAND ALIAS
-alias screenshot="scrot -s '/tmp/%F_%T_$wx$h.png' -e 'xclip -selection clipboard -target image/png -i \$f'"
 alias reload="source ~/.zshrc"
 alias config="nvim ~/.zshrc"
 alias whatsapp="google-chrome https://web.whatsapp.com/ &"
 alias shutdown="shutdown --n now"
 alias clip="xclip -sel clip"
 alias git-push="git add . && git commit -m update && git push"
-alias git-gud="git add . && git commit -m gud && git push"
+
+# XRANDR
+alias xauto="xrandr --auto"
+alias edpoff="xrandr --output eDP --off" 
+alias edpon="xrandr --output eDP --auto" 
 
 # FUNCTIONS
-
-za () { nohup zathura  "$@" &; }
-
 c () { z "$@" && l; }
-
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 # Python
 
 alias py="python"
 
-# Load Cargo 
+# UV
+if [ -f "$HOME/.local/bin/env" ]; then . "$HOME/.local/bin/env"; else export PATH="$HOME/.local/bin:$PATH"; fi
+# Cached uv completion (regenerated only when the uv binary changes)
+if (( $+commands[uv] )); then
+  _uv_comp="$HOME/.cache/zsh/uv-completion.zsh"
+  if [[ ! -s $_uv_comp || $commands[uv] -nt $_uv_comp ]]; then
+    mkdir -p "${_uv_comp:h}" && uv generate-shell-completion zsh > "$_uv_comp"
+  fi
+  source "$_uv_comp"; unset _uv_comp
+fi
 
-WINEPREFIX=/usr/bin/wineexport PATH="$PATH:/home/vjchave/.influxdb/"
-
-export INFLUXDB_HTTP_BIND_ADDRESS=":8086"
-
-. "$HOME/.local/bin/env"
+# NVM
+# Lazy-load nvm: only sourced the first time node/npm/npx/nvm is run
+export NVM_DIR="$HOME/.nvm"
+# Put the default node on PATH right away so global npm tools work without loading nvm
+_nvm_default="$NVM_DIR/versions/node/$(cat "$NVM_DIR/alias/default" 2>/dev/null)"
+[ -d "$_nvm_default/bin" ] || _nvm_default=$(print -l "$NVM_DIR"/versions/node/v*(N) | sort -V | tail -1)
+[ -d "$_nvm_default/bin" ] && export PATH="$_nvm_default/bin:$PATH"
+unset _nvm_default
+_load_nvm() {
+  unset -f nvm _load_nvm
+  \. "$NVM_DIR/nvm.sh"
+  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+}
+nvm() { _load_nvm; nvm "$@"; }

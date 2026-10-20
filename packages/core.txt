@@ -1,0 +1,11 @@
+# Base system / build
+build-essential pkg-config python3-dev python3-venv curl wget git gh unzip zip tree
+
+# Terminal + shell
+zsh kitty fzf zoxide eza bat fd-find ripgrep ncdu neovim xclip emacs
+
+# i3 desktop (the i3 config uses all of these)
+i3 i3status i3lock xss-lock dex suckless-tools network-manager-gnome pulseaudio-utils x11-xserver-utils
+
+# Main apps
+google-chrome-stable code

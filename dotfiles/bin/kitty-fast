@@ -1,0 +1,10 @@
+#!/bin/sh
+# Open a kitty window instantly by asking an already-running kitty over its
+# remote-control socket (kitten is a tiny Go binary, ~50 ms). If no kitty is
+# listening yet, start one that listens, so the next window is instant.
+# (Uses a socket file: abstract "@" sockets don't answer in kitty 0.32.)
+SOCK_PATH="${XDG_RUNTIME_DIR:-/tmp}/kitty-main.sock"
+SOCK="unix:$SOCK_PATH"
+timeout 2 kitten @ --to "$SOCK" launch --type=os-window --cwd="$HOME" >/dev/null 2>&1 && exit 0
+rm -f "$SOCK_PATH"  # stale socket from a kitty that is gone
+exec kitty -o allow_remote_control=socket-only --listen-on "$SOCK" --directory "$HOME"
