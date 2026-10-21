@@ -9,6 +9,8 @@ link "$DOTFILES/zsh/.zshrc"            "$HOME/.zshrc"
 link "$DOTFILES/git/.gitconfig"        "$HOME/.gitconfig"
 link "$DOTFILES/kitty/kitty.conf"      "$HOME/.config/kitty/kitty.conf"
 link "$DOTFILES/i3"                    "$HOME/.config/i3"
+link "$DOTFILES/picom/picom.conf"      "$HOME/.config/picom/picom.conf"
+link "$DOTFILES/rofi/config.rasi"      "$HOME/.config/rofi/config.rasi"
 link "$DOTFILES/vscode/settings.json"  "$HOME/.config/Code/User/settings.json"
 
 for bin in "$DOTFILES"/bin/*; do

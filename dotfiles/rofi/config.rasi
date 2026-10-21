@@ -1,0 +1,96 @@
+/* rofi: app launcher ($mod+d in i3). Translucent panel, blurred by picom. */
+
+configuration {
+  modi: "drun,run,window";
+  show-icons: true;
+  icon-theme: "Yaru-dark";
+  drun-display-format: "{name}";
+  display-drun: "";
+  display-run: "";
+  display-window: "";
+  matching: "fuzzy";
+  drun-use-desktop-cache: true;
+  sort: true;
+}
+
+/* Start from an empty theme so rofi's built-in defaults don't override these colors. */
+@theme "/dev/null"
+
+* {
+  font: "Caskaydia Cove Nerd Font 13";
+
+  bg:     #16161ccc;
+  bg-sel: #ffffff14;
+  fg:     #ffffff;
+  fg-dim: #c0c0c8;
+  accent: #4D9DE8;
+
+  background-color: transparent;
+  text-color: @fg;
+}
+
+window {
+  width: 640px;
+  location: center;
+  y-offset: -120px;
+  background-color: @bg;
+  border: 2px;
+  border-color: @accent;
+  border-radius: 14px;
+}
+
+mainbox {
+  padding: 16px;
+  spacing: 12px;
+  children: [ inputbar, listview ];
+}
+
+inputbar {
+  padding: 4px 6px 12px 6px;
+  spacing: 12px;
+  border: 0 0 1px 0;
+  border-color: #ffffff14;
+  children: [ prompt, entry ];
+}
+
+prompt {
+  text-color: @accent;
+}
+
+entry {
+  placeholder: "Search";
+  placeholder-color: @fg-dim;
+  cursor-color: @accent;
+}
+
+listview {
+  lines: 7;
+  columns: 1;
+  fixed-height: false;
+  scrollbar: false;
+  spacing: 2px;
+}
+
+element {
+  padding: 8px 10px;
+  spacing: 12px;
+  border-radius: 8px;
+}
+
+element selected {
+  background-color: @bg-sel;
+}
+
+element selected element-text {
+  text-color: @accent;
+}
+
+element-icon {
+  size: 24px;
+}
+
+element-text {
+  text-color: inherit;
+  vertical-align: 0.5;
+  highlight: bold;
+}
