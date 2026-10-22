@@ -38,17 +38,3 @@ done
 
 mkdir -p "$HOME/Repositories" "$HOME/Playground" "$HOME/Books"
 
-# Readest rewrites its settings.json, so merge the repo's preferences into
-# it instead of linking it, and add ~/Books, which is watched and
-# auto-imported in place (no copies). The folder also goes in Readest's
-# filesystem scope, or it can't be read. A running Readest would overwrite
-# the change with its in-memory state.
-if pgrep -x readest >/dev/null; then
-  warn "Readest is running; close it and re-run to apply its settings"
-else
-  python3 -I "$SETUP_DIR/scripts/readest-settings.py" \
-    "$DOTFILES/readest/settings.json" \
-    "$HOME/.config/com.bilingify.readest/settings.json" \
-    "$HOME/.local/share/com.bilingify.readest/.persisted-scope" \
-    "$HOME/Books"
-fi

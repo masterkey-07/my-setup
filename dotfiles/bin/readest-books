@@ -1,0 +1,112 @@
+#!/usr/bin/env python3
+# Pick a book from ~/Books with rofi and open it in Readest (bound to $mod+b
+# in the i3 config). Books you have started come first, most recently read on
+# top, then the rest of the shelf by name.
+import json
+import os
+import subprocess
+import sys
+import unicodedata
+
+SHELF = os.path.realpath(os.path.expanduser(os.environ.get("BOOKS_DIR") or "~/Books"))
+LIBRARY_JSON = os.path.expanduser(
+    "~/.local/share/com.bilingify.readest/Readest/Books/library.json"
+)
+BOOK_EXTENSIONS = (".epub", ".pdf", ".mobi", ".azw", ".azw3", ".fb2", ".cbz", ".txt")
+ROFI_COMMAND = [
+    "rofi", "-dmenu", "-i",
+    "-matching", "normal",
+    "-display-columns", "1",
+    "-display-column-separator", "\t",
+    "-p", "Book",
+    "-format", "i",
+]
+
+
+def main():
+    reading = load_reading_progress()
+    paths = sorted(scan_shelf(), key=lambda path: sort_key(path, reading))
+    choice = pick([make_row(path, reading.get(path)) for path in paths])
+    if choice is None:
+        sys.exit(0)
+    os.execvp("readest", ["readest", paths[choice]])
+
+
+def load_reading_progress():
+    """{real file path: (last read ms, percent)} for books opened in Readest.
+
+    Entries flagged deletedAt still count: Readest keeps saving progress to
+    a deleted entry when the book is reopened from its file. Books never
+    opened have no progress, so their updatedAt (the import time) is ignored.
+    """
+    try:
+        with open(LIBRARY_JSON) as library_file:
+            entries = json.load(library_file)
+    except FileNotFoundError:
+        return {}
+    except (OSError, ValueError) as error:
+        print(f"readest-books: unreadable {LIBRARY_JSON}: {error}", file=sys.stderr)
+        return {}
+
+    reading = {}
+    for entry in entries:
+        path, progress = entry.get("filePath"), entry.get("progress")
+        if not path or not progress:
+            continue
+        page, total = progress
+        last_read = entry.get("updatedAt") or 0
+        real = os.path.realpath(path)
+        if last_read > reading.get(real, (0, 0))[0]:
+            reading[real] = (last_read, round(100 * page / total) if total else 0)
+    return reading
+
+
+def scan_shelf():
+    """Real paths of the book files under the shelf."""
+    for root, dirs, files in os.walk(SHELF):
+        dirs[:] = [d for d in dirs if not d.startswith(".")]
+        for name in files:
+            if name.lower().endswith(BOOK_EXTENSIONS):
+                yield os.path.realpath(os.path.join(root, name))
+
+
+def sort_key(path, reading):
+    last_read = reading.get(path, (0, 0))[0]
+    return (-last_read, os.path.basename(path).lower())
+
+
+def make_row(path, progress):
+    # The hidden second column carries the search text.
+    label = make_label(path, progress)
+    return f"{label}\t{searchable_text(label)}"
+
+
+def make_label(path, progress):
+    name, extension = os.path.splitext(os.path.basename(path))
+    label = f"[{extension.lstrip('.').upper()}] {name}"
+    folder = os.path.relpath(os.path.dirname(path), SHELF)
+    if folder != ".":
+        label += f"  ·  {folder}"
+    return f"{label}  ({progress[1]}%)" if progress else label
+
+
+def searchable_text(text):
+    """Strip accents and punctuation, so "dont" finds "Don't" and "ciencia"
+    finds "ciência"."""
+    ascii_text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode()
+    kept = "".join(c for c in ascii_text if c.isalnum() or c.isspace())
+    return " ".join(kept.split())
+
+
+def pick(rows):
+    """Index of the row chosen in rofi, or None if cancelled."""
+    rofi = subprocess.run(
+        ROFI_COMMAND, input="\n".join(rows), capture_output=True, text=True, check=False
+    )
+    if rofi.returncode != 0 or not rofi.stdout.strip():
+        return None
+    return int(rofi.stdout)
+
+
+if __name__ == "__main__":
+    main()
