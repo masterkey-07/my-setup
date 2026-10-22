@@ -21,6 +21,9 @@ font pango:Carkaydia Cove Nerd Font 8
 
 # Start XDG autostart .desktop files using dex. See also
 # https://wiki.archlinux.org/index.php/XDG_Autostart
+# Load the cursor theme/size before anything else draws a cursor.
+exec --no-startup-id xrdb -merge ~/.Xresources
+
 exec --no-startup-id dex --autostart --environment i3
 
 # The combination of xss-lock, nm-applet and pactl is a popular choice, so
@@ -36,6 +39,13 @@ exec --no-startup-id nm-applet
 
 # Wallpaper (feh). exec_always so it's reapplied on i3 restart ($mod+Shift+r).
 exec_always --no-startup-id feh --no-fehbg --bg-fill ~/.config/i3/Tree.jpeg
+
+# Move the mouse pointer to the center of a window when it gets focus
+exec --no-startup-id ~/.local/bin/focus-warp
+
+# Hide the pointer after 1s idle; only real mouse input shows it again, so
+# focus-warp moves it while it stays hidden.
+exec --no-startup-id unclutter --timeout 1 --jitter 3 --ignore-scrolling --start-hidden
 
 # Compositor: transparency + blur (config in ~/.config/picom/picom.conf).
 exec --no-startup-id picom
@@ -62,6 +72,9 @@ bindsym $mod+q kill
 
 # start rofi (a program launcher; config in ~/.config/rofi/config.rasi)
 bindsym $mod+d exec --no-startup-id rofi -show drun
+
+# search the Readest library and open a book
+bindsym $mod+b exec --no-startup-id ~/.local/bin/readest-books
 
 # change focus
 bindsym $mod+j focus left
@@ -153,6 +166,8 @@ bar {
         status_command i3status --config ~/.config/i3/i3status.conf
         # --transparency lets the RGBA colors below show picom's blur behind the bar
         i3bar_command i3bar --transparency
+        # keep the statusline off the laptop panel's right edge (bezel hides it)
+        padding 0 8px 0 0
         colors {
                 background #1e1e1e33
                 statusline #ffffff
@@ -174,14 +189,15 @@ default_orientation auto
 bindsym $mod+dead_acute exec google-chrome
 bindsym $mod+bracketleft exec obsidian 
 
-bindsym --release $mod+dead_tilde exec google-chrome --new-window web.whatsapp.com
-bindsym --release $mod+bracketright exec spotify
+# Single Chrome app windows: the key jumps to the site, launching it if needed
+bindsym --release $mod+dead_tilde exec --no-startup-id webapp web.whatsapp.com
+bindsym --release $mod+bracketright exec --no-startup-id webapp open.spotify.com
 
 bindsym --release $mod+comma exec code
 bindsym --release $mod+period exec discord
 bindsym $mod+semicolon exec steam
 
-bindsym $mod+slash exec claude-desktop
+bindsym --release $mod+slash exec --no-startup-id summon com.anthropic.Claude claude-desktop
 
 bindsym --release $mod+p exec screenshot
 bindsym --release $mod+l exec loginctl lock-session

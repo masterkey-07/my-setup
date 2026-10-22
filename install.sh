@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# One-command setup for a fresh Ubuntu 24.04 machine.
+# One-command setup for a fresh Ubuntu 26.04 machine.
 #
 #   bash <(curl -fsSL https://raw.githubusercontent.com/masterkey-07/setup/main/install.sh)
 #

@@ -18,5 +18,6 @@ fi
 
 log "next steps"
 info "- log out and pick the i3 session at the login screen"
+info "  (also needed for Flatpak apps like Focus Timer to show up in rofi)"
 info "- NVIDIA GPU? run: sudo ubuntu-drivers autoinstall"
 info "- open a new terminal so zsh, starship and the font take effect"

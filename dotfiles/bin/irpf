@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+# Install/remove the Receita Federal IRPF program (one release per year).
+#
+#   irpf install [year]   download the newest Linux installer (or that year's)
+#                         from gov.br and install it to ~/.local/opt/IRPF<year>
+#   irpf remove <year>    uninstall the program; declarations are kept
+#   irpf list             installed years
+#
+# IRPF keeps its data in $HOME/ProgramasRFB/IRPF<year>, and $HOME is only
+# overridable through Java's user.home. Each install gets
+# -Duser.home=$IRPF_HOME in its .vmoptions, so declarations (gravadas/,
+# transmitidas/) land in $IRPF_HOME/ProgramasRFB instead of cluttering ~.
+set -euo pipefail
+
+PAGE=https://www.gov.br/receitafederal/pt-br/centrais-de-conteudo/download/pgd/dirpf
+OPT=$HOME/.local/opt
+IRPF_HOME=${IRPF_HOME:-$HOME/Documents/IRPF}
+
+die() { echo "irpf: $*" >&2; exit 1; }
+
+# rofi caches .desktop entries (drun-use-desktop-cache), so drop the cache
+# whenever the menu entries change or it keeps launching stale paths.
+refresh_menu() { rm -f "$HOME/.cache/rofi-drun-desktop.cache"; }
+
+cmd_install() {
+  local year=${1:-} url dir tmp
+  url=$(curl -fsSL "$PAGE" |
+    grep -oE 'https://[^"]*/IRPF[0-9]{4}Linux-x86_64v[0-9.]+\.(sh\.bin|bin|sh)' |
+    grep "/IRPF${year}" | sort -uV | tail -1) || true
+  [[ -n $url ]] || die "no Linux installer found${year:+ for $year} on $PAGE"
+  year=$(grep -oE 'IRPF[0-9]{4}' <<<"${url##*/}" | head -1 | cut -c5-)
+  dir=$OPT/IRPF$year
+  [[ -e $dir ]] && die "$dir already exists (the app updates itself within the year)"
+
+  tmp=$(mktemp -d)
+  trap "rm -rf '$tmp'" EXIT
+  echo "Downloading ${url##*/}"
+  curl -fL --progress-bar -o "$tmp/installer" "$url"
+  echo "Installing to $dir"
+  sh "$tmp/installer" -q -dir "$dir"
+
+  mkdir -p "$IRPF_HOME"
+  echo "-Duser.home=$IRPF_HOME" >>"$dir/IRPF$year.vmoptions"
+  refresh_menu
+  echo "Done. Open IRPF$year from the app menu; data goes to $IRPF_HOME/ProgramasRFB/IRPF$year"
+}
+
+cmd_remove() {
+  local year=${1:?usage: irpf remove <year>} dir
+  dir=$OPT/IRPF$year
+  [[ -d $dir ]] || die "$dir not found"
+  pgrep -f "$dir/" >/dev/null && die "IRPF$year is running, close it first"
+  "$dir/uninstall" -q
+  rm -rf "$dir"
+  rm -f "$HOME"/.local/share/applications/install4j_*IRPF*"$year"*.desktop
+  refresh_menu
+  echo "Removed IRPF$year. Declarations kept in $IRPF_HOME/ProgramasRFB/IRPF$year"
+}
+
+cmd_list() {
+  compgen -G "$OPT/IRPF*" | xargs -rn1 basename || echo "none installed"
+}
+
+case ${1:-} in
+  install) shift; cmd_install "$@" ;;
+  remove)  shift; cmd_remove "$@" ;;
+  list)    cmd_list ;;
+  *)       sed -n '2,8s/^# \{0,1\}//p' "$0"; exit 1 ;;
+esac

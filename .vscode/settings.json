@@ -1,0 +1,5 @@
+{
+  "Lua.runtime.version": "LuaJIT",
+  "Lua.diagnostics.globals": ["vim"],
+  "Lua.workspace.library": ["/usr/share/nvim/runtime"]
+}

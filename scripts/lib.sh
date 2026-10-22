@@ -75,7 +75,8 @@ install_deb_url() {
   sudo DEBIAN_FRONTEND=noninteractive apt-get install -y "$deb"
 }
 
-# link <source-in-repo> <target>: symlink, backing up whatever real file was there
+# link <source-in-repo> <target>: symlink, backing up the target only when it
+# holds content that isn't already in the repo
 link() {
   local src="$1" dst="$2"
   if [[ -L "$dst" && "$(readlink -f "$dst")" == "$(readlink -f "$src")" ]]; then
@@ -83,12 +84,19 @@ link() {
     return
   fi
   mkdir -p "$(dirname "$dst")"
-  if [[ -e "$dst" || -L "$dst" ]]; then
+  if [[ -L "$dst" ]] || same_content "$src" "$dst"; then
+    rm -rf "$dst"
+  elif [[ -e "$dst" ]]; then
     local bak
     bak="$dst.bak.$(date +%Y%m%d%H%M%S)"
     mv "$dst" "$bak"
-    info "backup  $dst -> $bak"
+    warn "backup  $dst -> $bak (it differed from the repo; merge it back)"
   fi
   ln -s "$src" "$dst"
   info "linked  $dst -> $src"
+}
+
+# same_content <a> <b>: true when both exist and match (files or whole dirs)
+same_content() {
+  [[ -e "$2" ]] && diff -rq "$1" "$2" >/dev/null 2>&1
 }

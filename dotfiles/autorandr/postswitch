@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Runs after every autorandr profile switch (login, hotplug, `autorandr -c`).
+# i3 only honours `workspace N output X` when a workspace is created, so put
+# 1-7 back on the external monitor and 8-10 on the laptop panel.
+
+# Active outputs only: NVIDIA keeps an unplugged HDMI "connected".
+outputs=$(xrandr --query | awk '/ connected( primary)? [0-9]+x[0-9]+/ {print $1}')
+laptop=$(grep -m1 '^eDP' <<<"$outputs")
+external=$(grep -m1 -v '^eDP' <<<"$outputs")
+
+# Single screen: i3 already moved everything to the only output.
+[[ -n "$laptop" && -n "$external" ]] || exit 0
+
+focused=$(i3-msg -t get_workspaces | python3 -c \
+  'import json,sys; print(next(w["name"] for w in json.load(sys.stdin) if w["focused"]))')
+
+cmds=""
+for ws in 7 6 5 4 3 2 1; do cmds+="workspace number $ws; move workspace to output $external; "; done
+for ws in 10 9 8;        do cmds+="workspace number $ws; move workspace to output $laptop; "; done
+i3-msg -q "${cmds}workspace $focused"
+
+# The wallpaper doesn't survive a resolution/layout change.
+feh --no-fehbg --bg-fill ~/.config/i3/Tree.jpeg

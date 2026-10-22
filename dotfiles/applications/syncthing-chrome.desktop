@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Syncthing
+Comment=Open Syncthing web UI in its own Chrome window
+Exec=google-chrome --app=http://127.0.0.1:8384
+Icon=syncthing
+Terminal=false
+Categories=Network;FileTransfer;
+Keywords=sync;files;

@@ -1,0 +1,5 @@
+# Hides the Syncthing package's launcher entry from rofi (overrides /usr/share/applications).
+[Desktop Entry]
+Type=Application
+Name=Hidden
+NoDisplay=true

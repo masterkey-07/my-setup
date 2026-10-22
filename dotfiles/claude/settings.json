@@ -1,0 +1,11 @@
+{
+  "modelSettings": {
+    "claude-sonnet-5": {
+      "effortLevel": "high"
+    }
+  },
+  "theme": "dark",
+  "permissions": {
+    "defaultMode": "auto"
+  }
+}

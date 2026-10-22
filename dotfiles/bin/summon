@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Pull an app's window to the current workspace: `summon com.anthropic.Claude
+# claude-desktop` moves and focuses the window if it's already open, otherwise
+# runs the command. Lives in a script because i3 splits bindsym on commas.
+
+class=${1:?usage: summon <wm-class> <command...>}
+shift
+
+i3-msg -q "[class=\"$class\"] move container to workspace current, focus" 2>/dev/null ||
+  exec "${@:?usage: summon <wm-class> <command...>}"

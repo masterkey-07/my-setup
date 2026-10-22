@@ -1,0 +1,5 @@
+! Pin the cursor size: without it libXcursor derives one from the screen
+! height (2160px stacked layout -> ~45px), so the cursor is huge outside apps.
+! Bibata ships a 20px size; the stock themes stop at 24.
+Xcursor.theme: Bibata-Modern-Ice
+Xcursor.size: 20

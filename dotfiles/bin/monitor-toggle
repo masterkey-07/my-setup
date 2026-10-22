@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Turn the external monitor on/off (bound to $mod+Ctrl+m in the i3 config).
+# The NVIDIA driver keeps reporting HDMI as "connected" after unplugging and
+# sends no hotplug event, so autorandr can't notice; do it by hand instead.
+# Its status is unreliable either way, so an output that is on (has a
+# geometry) counts whether it says connected or disconnected.
+
+query=$(xrandr --query)
+laptop=$(awk '/^eDP/ {print $1; exit}' <<<"$query")
+active=$(awk '!/^eDP/ && / (dis)?connected( primary)? [0-9]+x[0-9]+/ {print $1; exit}' <<<"$query")
+external=$(awk '!/^eDP/ && / connected/ {print $1; exit}' <<<"$query")
+
+if [[ -n "$active" ]]; then
+  xrandr --output "$active" --off
+elif [[ -n "$external" ]]; then
+  xrandr --output "$external" --auto --left-of "$laptop"
+else
+  exit 0
+fi
+
+~/.config/autorandr/postswitch

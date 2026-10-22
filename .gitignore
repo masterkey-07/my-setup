@@ -1,0 +1,17 @@
+# Python bytecode from running the scripts in dotfiles/bin
+__pycache__/
+*.py[cod]
+
+# Editor swap and backup files
+*.swp
+*.swo
+*~
+.netrwhist
+
+# OS cruft
+.DS_Store
+.directory
+
+# Local secrets and overrides that must never be committed
+.env
+*.local

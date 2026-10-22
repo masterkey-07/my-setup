@@ -1,0 +1,3 @@
+# Cursor theme for apps that ignore Xresources/gsettings and the root window.
+[Icon Theme]
+Inherits=Bibata-Modern-Ice

@@ -82,12 +82,9 @@ source $ZSH/oh-my-zsh.sh
 # You may need to manually set your language environment
 # export LANG=en_US.UTF-8
 
-# Preferred editor for local and remote sessions
-# if [[ -n $SSH_CONNECTION ]]; then
-#   export EDITOR='vim'
-# else
-#   export EDITOR='mvim'
-# fi
+# Preferred editor (git, sudoedit, crontab -e, ...)
+export EDITOR='nvim'
+export VISUAL='nvim'
 
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
@@ -102,7 +99,6 @@ source $ZSH/oh-my-zsh.sh
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
 eval "$(starship init zsh)"
-eval "$(zoxide init zsh)"
 
 # WINDOWS ALIAS
 alias cls="clear"
@@ -143,7 +139,8 @@ alias run="xdg-open"
 alias terminal="gnome-terminal"
 alias disk="ncdu"
 alias vim="nvim"
-alias emacs="emacs -nw"
+alias vi="nvim"
+alias v="nvim"
 
 # COMMAND ALIAS
 alias reload="source ~/.zshrc"
@@ -191,3 +188,6 @@ _load_nvm() {
   [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
 }
 nvm() { _load_nvm; nvm "$@"; }
+
+# zoxide must be initialized last
+eval "$(zoxide init zsh)"

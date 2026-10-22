@@ -9,12 +9,46 @@ link "$DOTFILES/zsh/.zshrc"            "$HOME/.zshrc"
 link "$DOTFILES/git/.gitconfig"        "$HOME/.gitconfig"
 link "$DOTFILES/kitty/kitty.conf"      "$HOME/.config/kitty/kitty.conf"
 link "$DOTFILES/i3"                    "$HOME/.config/i3"
+link "$DOTFILES/autorandr/postswitch"  "$HOME/.config/autorandr/postswitch"
 link "$DOTFILES/picom/picom.conf"      "$HOME/.config/picom/picom.conf"
 link "$DOTFILES/rofi/config.rasi"      "$HOME/.config/rofi/config.rasi"
+link "$DOTFILES/nvim"                  "$HOME/.config/nvim"
 link "$DOTFILES/vscode/settings.json"  "$HOME/.config/Code/User/settings.json"
+link "$DOTFILES/x11/.Xresources"       "$HOME/.Xresources"
+link "$DOTFILES/icons/default"        "$HOME/.icons/default"
+link "$DOTFILES/gtk-3.0/settings.ini"  "$HOME/.config/gtk-3.0/settings.ini"
+
+# Claude Code: link only the config, never ~/.claude itself (it holds
+# credentials, history and sessions). Skills are linked one by one so skills
+# installed by other tools or synced from claude.ai stay untouched.
+link "$DOTFILES/claude/CLAUDE.md"      "$HOME/.claude/CLAUDE.md"
+link "$DOTFILES/claude/settings.json"  "$HOME/.claude/settings.json"
+for skill in "$DOTFILES"/claude/skills/*/; do
+  link "${skill%/}" "$HOME/.claude/skills/$(basename "$skill")"
+done
 
 for bin in "$DOTFILES"/bin/*; do
   link "$bin" "$HOME/.local/bin/$(basename "$bin")"
 done
 
-mkdir -p "$HOME/Repositories" "$HOME/Playground"
+# Rofi launcher entries (e.g. web UIs opened as Chrome app windows).
+for app in "$DOTFILES"/applications/*.desktop; do
+  link "$app" "$HOME/.local/share/applications/$(basename "$app")"
+done
+
+mkdir -p "$HOME/Repositories" "$HOME/Playground" "$HOME/Books"
+
+# Readest rewrites its settings.json, so merge the repo's preferences into
+# it instead of linking it, and add ~/Books, which is watched and
+# auto-imported in place (no copies). The folder also goes in Readest's
+# filesystem scope, or it can't be read. A running Readest would overwrite
+# the change with its in-memory state.
+if pgrep -x readest >/dev/null; then
+  warn "Readest is running; close it and re-run to apply its settings"
+else
+  python3 -I "$SETUP_DIR/scripts/readest-settings.py" \
+    "$DOTFILES/readest/settings.json" \
+    "$HOME/.config/com.bilingify.readest/settings.json" \
+    "$HOME/.local/share/com.bilingify.readest/.persisted-scope" \
+    "$HOME/Books"
+fi
