@@ -1,8 +1,11 @@
 # Base system / build
 build-essential pkg-config python3-dev python3-venv curl wget git gh unzip zip tree
 
+# Language toolchains from apt (Rust and Haskell come from rustup/ghcup in 40-tools.sh)
+golang-go
+
 # Terminal + shell
-zsh kitty fzf zoxide eza bat fd-find ripgrep ncdu neovim xclip
+zsh kitty fzf zoxide eza bat fd-find ripgrep ncdu xclip
 
 # Xorg server: 26.04 is Wayland-only by default and no longer pulls it in, but i3 needs X11
 xserver-xorg-core xserver-xorg-input-libinput xserver-xorg-input-all

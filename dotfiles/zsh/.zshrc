@@ -157,6 +157,8 @@ alias edpon="xrandr --output eDP --auto"
 
 # FUNCTIONS
 c () { z "$@" && l; }
+# Without args, `z` would jump to $HOME, so only jump when a target is given
+claudeit () { { (( $# == 0 )) || z "$@"; } && claude; }
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 # Python
@@ -173,6 +175,12 @@ if (( $+commands[uv] )); then
   fi
   source "$_uv_comp"; unset _uv_comp
 fi
+
+# Language toolchains (rustup, go install, ghcup)
+for _dir in "$HOME/.cargo/bin" "$HOME/go/bin" "$HOME/.ghcup/bin"; do
+  [ -d "$_dir" ] && export PATH="$_dir:$PATH"
+done
+unset _dir
 
 # NVM
 # Lazy-load nvm: only sourced the first time node/npm/npx/nvm is run
