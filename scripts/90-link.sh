@@ -7,5 +7,6 @@ source "$SETUP_DIR/scripts/lib.sh"
 # lib.sh, shared with healthcheck.sh). Edit them in place and commit.
 
 link_configs link
+seed_configs seed
 
-mkdir -p "$HOME/Repositories" "$HOME/Playground" "$HOME/Books"
+mkdir -p "$HOME/Repositories" "$HOME/Playground" "$HOME/Books" "$HOME/Vault"

@@ -123,6 +123,20 @@ link() {
   info "linked  $dst -> $src"
 }
 
+# seed <source-in-repo> <target>: copy once, never overwrite. For configs the
+# app rewrites itself (window state, recent files), which as symlinks would
+# keep the repo dirty
+seed() {
+  local src="$1" dst="$2"
+  if [[ -e "$dst" ]]; then
+    info "ok      $dst (seeded)"
+    return
+  fi
+  mkdir -p "$(dirname "$dst")"
+  cp "$src" "$dst"
+  info "seeded  $dst <- $src"
+}
+
 # same_content <a> <b>: true when both exist and match (files or whole dirs)
 same_content() {
   [[ -e "$2" ]] && diff -rq "$1" "$2" >/dev/null 2>&1
@@ -165,4 +179,16 @@ link_configs() {
   for app in "$DOTFILES"/applications/*.desktop; do
     "$fn" "$app" "$HOME/.local/share/applications/$(basename "$app")"
   done
+}
+
+# seed_configs <fn>: call <fn> <source-in-repo> <target> for every config the
+# link step copies once instead of linking (90-link.sh passes seed)
+seed_configs() {
+  local fn="$1"
+  # KeePassXC: tray, auto-lock, browser integration, Secret Service, SSH agent
+  "$fn" "$DOTFILES/keepassxc/keepassxc.ini" "$HOME/.config/keepassxc/keepassxc.ini"
+  # Lets the KeePassXC-Browser extension in Chrome talk to KeePassXC (the
+  # file KeePassXC writes when Chrome is ticked under Browser Integration)
+  "$fn" "$DOTFILES/keepassxc/org.keepassxc.keepassxc_browser.json" \
+    "$HOME/.config/google-chrome/NativeMessagingHosts/org.keepassxc.keepassxc_browser.json"
 }

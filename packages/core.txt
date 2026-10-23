@@ -17,3 +17,7 @@ libnotify-bin sound-theme-freedesktop
 
 # Main apps (syncthing runs as a service, set up in 20-apt.sh)
 google-chrome-stable code syncthing
+
+# Password safe; -full is the build with browser integration and keepassxc-proxy
+# (vault synced by syncthing, settings seeded in 90-link.sh)
+keepassxc-full

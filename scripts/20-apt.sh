@@ -55,6 +55,20 @@ fi
 # the phone can sync any time. Config and keys live in ~/.local/state/syncthing.
 SYNCTHING_SERVICE="syncthing@$USER.service"
 SYNCTHING_BOOKS_ID=my-books
+SYNCTHING_VAULT_ID=my-vault
+
+# syncthing_folder <id> <label> <path>: add the folder unless it's there;
+# true when the folder exists afterwards
+syncthing_folder() {
+  local id="$1" label="$2" path="$3"
+  syncthing cli config folders list 2>/dev/null | grep -qix "$id" && return 0
+  info "syncthing folder $path"
+  mkdir -p "$path"
+  syncthing cli config folders add --id "$id" --label "$label" --path "$path" && return 0
+  warn "could not add $path to syncthing; add it in the web UI"
+  return 1
+}
+
 if has syncthing; then
   systemctl is-enabled --quiet "$SYNCTHING_SERVICE" || sudo systemctl enable --now "$SYNCTHING_SERVICE"
 
@@ -64,12 +78,23 @@ if has syncthing; then
     sleep 1
   done
 
-  # Same folder ID as on the other devices so they match it once paired;
+  # Same folder IDs as on the other devices so they match once paired;
   # sharing with devices is done in the web UI (rofi: Syncthing)
-  if ! syncthing cli config folders list 2>/dev/null | grep -qix "$SYNCTHING_BOOKS_ID"; then
-    info "syncthing folder ~/Books"
-    mkdir -p "$HOME/Books"
-    syncthing cli config folders add --id "$SYNCTHING_BOOKS_ID" --label Books --path "$HOME/Books" \
-      || warn "could not add ~/Books to syncthing; add it in the web UI"
+  syncthing_folder "$SYNCTHING_BOOKS_ID" Books "$HOME/Books" || true
+
+  # The password vault. Sync alone would spread a corrupted or deleted vault to
+  # every device, so keep old versions of it (staggered: thinned out over a year)
+  if syncthing_folder "$SYNCTHING_VAULT_ID" Vault "$HOME/Vault"; then
+    syncthing cli config folders "$SYNCTHING_VAULT_ID" versioning type set staggered \
+      || warn "could not turn on versioning for ~/Vault; set it in the web UI"
   fi
+fi
+
+# Chrome policy: no built-in password saving (KeePassXC does it) and the
+# KeePassXC-Browser extension force-installed from the Chrome Web Store
+CHROME_POLICY_DIR=/etc/opt/chrome/policies/managed
+CHROME_POLICY="$DOTFILES/chrome/policies/keepassxc.json"
+if has google-chrome-stable && ! cmp -s "$CHROME_POLICY" "$CHROME_POLICY_DIR/keepassxc.json"; then
+  info "chrome policy: KeePassXC instead of the built-in password manager"
+  sudo install -D -m 644 "$CHROME_POLICY" "$CHROME_POLICY_DIR/keepassxc.json"
 fi

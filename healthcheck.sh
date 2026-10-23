@@ -35,6 +35,7 @@ main() {
   check_vscode
   check_links
   check_configs
+  check_password_safe
   check_logins
   summary
 }
@@ -172,6 +173,24 @@ check_configs() {
 nvim_starts_cleanly() {
   ! nvim --headless '+qa' 2>&1 | grep -qE 'E[0-9]+:|[Ee]rror|stack traceback'
 }
+
+check_password_safe() {
+  log "password safe"
+  seed_configs check_seeded
+  check "syncthing shares ~/Vault" bash -c 'syncthing cli config folders list | grep -qix my-vault'
+  check "~/Vault keeps old versions" bash -c \
+    '[[ "$(syncthing cli config folders my-vault versioning type get)" == staggered ]]'
+  check "a vault exists in ~/Vault" bash -c 'compgen -G "$HOME/Vault/*.kdbx"'
+  check "Chrome policy installed" test -f /etc/opt/chrome/policies/managed/keepassxc.json
+  check "keepassxc running" pgrep -x keepassxc
+  # Another keyring (e.g. gnome-keyring started by PAM) would win the bus name
+  # and take gh's token instead
+  check "KeePassXC is the Secret Service keyring" bash -c \
+    'busctl --user status org.freedesktop.secrets 2>/dev/null | grep -q "^Comm=keepassxc"'
+}
+
+# check_seeded <source-in-repo> <target>: seeded files only need to exist
+check_seeded() { check "$2" test -e "$2"; }
 
 check_logins() {
   log "logins and repos"

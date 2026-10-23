@@ -37,6 +37,10 @@ exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork -c 111111
 # and nm-applet is a desktop environment-independent system tray GUI for it.
 exec --no-startup-id nm-applet
 
+# Password safe, started minimized to the tray: it is also the Secret Service
+# keyring (gh, libsecret apps) and the SSH agent, so it must run from login
+exec --no-startup-id keepassxc
+
 # Wallpaper (feh). exec_always so it's reapplied on i3 restart ($mod+Shift+r).
 exec_always --no-startup-id feh --no-fehbg --bg-fill ~/.config/i3/Tree.jpeg
 
@@ -201,6 +205,7 @@ bindsym --release $mod+period exec discord
 bindsym $mod+semicolon exec steam
 
 bindsym --release $mod+slash exec --no-startup-id summon com.anthropic.Claude claude-desktop
+bindsym --release $mod+x exec --no-startup-id summon KeePassXC keepassxc
 
 bindsym --release $mod+p exec screenshot
 bindsym --release $mod+l exec loginctl lock-session

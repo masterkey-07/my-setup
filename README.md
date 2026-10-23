@@ -69,6 +69,18 @@ plain options and keymaps, with no plugins.
 They are symlinks, so editing them on the machine edits the repo. Commit and push to keep them.
 Any file that was already in place is moved to `<file>.bak.<timestamp>` before linking.
 
+KeePassXC rewrites its own config, so [dotfiles/keepassxc/](dotfiles/keepassxc/) is copied once
+instead (an existing file is never overwritten): `keepassxc.ini` to `~/.config/keepassxc/`, and
+the Chrome native-messaging manifest to `~/.config/google-chrome/NativeMessagingHosts/`.
+
+## Password safe
+
+KeePassXC, with the vault in `~/Vault`, synced by Syncthing (folder `my-vault`, with staggered
+versioning so a bad or deleted vault can be recovered). It starts minimized with i3 (`$mod+x`
+brings it up) and also acts as the Secret Service keyring and the SSH agent. Chrome's own
+password manager is turned off by policy and the KeePassXC-Browser extension is force-installed
+([dotfiles/chrome/policies/](dotfiles/chrome/policies/)). Vault and key files are gitignored.
+
 To add software, add the package to a list in [packages/](packages/). Use a step script
 in [scripts/](scripts/) if it isn't in apt.
 
@@ -76,4 +88,12 @@ in [scripts/](scripts/) if it isn't in apt.
 
 - NVIDIA GPU: the driver is installed automatically; reboot once afterwards.
 - Log out and pick the **i3** session on the login screen.
+- Password safe, first machine only: create `~/Vault/main.kdbx` in KeePassXC (Argon2id, a
+  generated 6–7 word passphrase, written down once and kept offline). Import Chrome's passwords
+  (export a CSV from Google Password Manager, import it, then `shred -u` the CSV), delete them
+  from the Google account, and share the `Vault` folder with the phone in Syncthing.
+- Password safe, every machine: with the vault unlocked, run `gh auth logout && gh auth login`
+  so the GitHub token moves into the vault instead of `~/.config/gh/hosts.yml`.
+- Keep 2FA codes for Google and GitHub in a separate authenticator app, and copy the vault
+  to an offline USB drive now and then.
 - Before relying on the installer, test it on a fresh 26.04 VM.

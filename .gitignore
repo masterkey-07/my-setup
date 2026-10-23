@@ -15,6 +15,9 @@ __pycache__/
 # Local secrets and overrides that must never be committed
 .env
 *.local
+# Password vaults and their key files (they live in ~/Vault, never in a repo)
+*.kdbx
+*.keyx
 
 # Editor-local workspace settings (paths differ per machine)
 .vscode/
