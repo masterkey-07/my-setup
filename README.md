@@ -1,9 +1,9 @@
-# setup
+# my-setup
 
 My configs and a one-command installer for a fresh **Ubuntu 26.04** machine.
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/masterkey-07/setup/main/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/masterkey-07/my-setup/main/install.sh)
 ```
 
 It clones this repo to `~/Repositories/my-setup`, asks for sudo once, installs everything and

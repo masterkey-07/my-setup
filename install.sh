@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # One-command setup for a fresh Ubuntu 26.04 machine.
 #
-#   bash <(curl -fsSL https://raw.githubusercontent.com/masterkey-07/setup/main/install.sh)
+#   bash <(curl -fsSL https://raw.githubusercontent.com/masterkey-07/my-setup/main/install.sh)
 #
 # Run ./install.sh --help for options.
 set -euo pipefail
 
-REPO_URL="https://github.com/masterkey-07/setup.git"
+REPO_URL="https://github.com/masterkey-07/my-setup.git"
 SETUP_DIR="${SETUP_DIR:-$HOME/Repositories/my-setup}"
 
 [[ $EUID -ne 0 ]] || { echo "Run as your normal user, not root (sudo is used when needed)." >&2; exit 1; }
