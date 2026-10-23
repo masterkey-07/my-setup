@@ -6,7 +6,7 @@ My configs and a one-command installer for a fresh **Ubuntu 26.04** machine.
 bash <(curl -fsSL https://raw.githubusercontent.com/masterkey-07/setup/main/install.sh)
 ```
 
-It clones this repo to `~/Repositories/setup`, asks for sudo once, installs everything and
+It clones this repo to `~/Repositories/my-setup`, asks for sudo once, installs everything and
 symlinks the configs. It is safe to re-run: steps that are already done are skipped.
 
 ## What gets installed

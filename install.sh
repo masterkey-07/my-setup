@@ -7,7 +7,7 @@
 set -euo pipefail
 
 REPO_URL="https://github.com/masterkey-07/setup.git"
-SETUP_DIR="${SETUP_DIR:-$HOME/Repositories/setup}"
+SETUP_DIR="${SETUP_DIR:-$HOME/Repositories/my-setup}"
 
 [[ $EUID -ne 0 ]] || { echo "Run as your normal user, not root (sudo is used when needed)." >&2; exit 1; }
 
