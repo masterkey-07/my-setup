@@ -9,7 +9,8 @@ local mason_servers = {
     "intelephense",
     "jdtls",
     "jsonls",
-    "kotlin_lsp",
+    -- kotlin_lsp left out: the registry's download URL 404s since JetBrains moved the
+    -- builds (mason-org/mason-registry issues); lua/servers/ still enables it once installed
     "lua_ls",
     "marksman",
     "postgres_lsp",
