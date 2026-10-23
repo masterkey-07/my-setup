@@ -86,8 +86,8 @@ if (( $+commands[uv] )); then
   source "$_uv_comp"; unset _uv_comp
 fi
 
-# Language toolchains (rustup, go install, ghcup)
-for _dir in "$HOME/.cargo/bin" "$HOME/go/bin" "$HOME/.ghcup/bin"; do
+# Language toolchains (rustup, go install, ghcup, dart pub global)
+for _dir in "$HOME/.cargo/bin" "$HOME/go/bin" "$HOME/.ghcup/bin" "$HOME/.pub-cache/bin"; do
   [ -d "$_dir" ] && export PATH="$_dir:$PATH"
 done
 unset _dir
