@@ -9,7 +9,6 @@ configuration {
   display-run: "";
   display-window: "";
   matching: "fuzzy";
-  drun-use-desktop-cache: true;
   sort: true;
 }
 

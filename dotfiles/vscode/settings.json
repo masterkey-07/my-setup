@@ -46,5 +46,7 @@
   },
   "[jsonc]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
+  },
+  "git.openRepositoryInParentFolders": "always",
+  "editor.inlineSuggest.enabled": false
 }

@@ -1,0 +1,16 @@
+# Language toolchains with no dedicated version manager worth using (the rest come from
+# rustup, ghcup and SDKMAN! in 40-tools.sh; dart comes from Google's apt repo, added
+# in 10-repos.sh). Go is one install because its built-in toolchain switching follows
+# each project's go.mod.
+golang-go dart php-cli php-mbstring php-xml php-curl php-zip php-sqlite3 composer
+
+# Toolchain prerequisites: GHC (ghcup) links libffi/libgmp, clj uses rlwrap for line
+# editing, and native builds (Rust openssl-sys, Python wheels) want the ssl/zlib headers
+python3-dev python3-venv rlwrap libssl-dev zlib1g-dev libffi-dev libgmp-dev
+
+# Databases
+postgresql
+
+# Docker engine, Compose v2 and buildx from Ubuntu's own archive (recent enough
+# for learning; no third-party repo)
+docker.io docker-compose-v2 docker-buildx

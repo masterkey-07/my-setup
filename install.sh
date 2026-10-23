@@ -8,8 +8,28 @@ set -euo pipefail
 
 REPO_URL="https://github.com/masterkey-07/setup.git"
 SETUP_DIR="${SETUP_DIR:-$HOME/Repositories/setup}"
-STEPS=(repos apt shell tools apps vscode link post)
-GROUPS_OPTIONAL=(gaming comm office media)
+
+[[ $EUID -ne 0 ]] || { echo "Run as your normal user, not root (sudo is used when needed)." >&2; exit 1; }
+
+# Bootstrap: when piped from curl there is no repo next to this script yet, so
+# clone it and re-run from there (the step and group lists live in lib.sh)
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)" || HERE=""
+if [[ ! -f "$HERE/scripts/lib.sh" ]]; then
+  if ! command -v git >/dev/null || ! command -v curl >/dev/null; then
+    sudo apt-get update && sudo apt-get install -y git curl
+  fi
+  if [[ -d "$SETUP_DIR/.git" ]]; then
+    git -C "$SETUP_DIR" pull --ff-only || true
+  else
+    mkdir -p "$(dirname "$SETUP_DIR")"
+    git clone "$REPO_URL" "$SETUP_DIR"
+  fi
+  exec bash "$SETUP_DIR/install.sh" "$@"
+fi
+
+export SETUP_DIR="$HERE"
+# shellcheck source=scripts/lib.sh
+source "$SETUP_DIR/scripts/lib.sh"
 
 usage() {
   cat <<EOF
@@ -26,11 +46,22 @@ Groups: ${GROUPS_OPTIONAL[*]}
 EOF
 }
 
+# is_one_of <name> <choice>...: true when name is among the choices
+is_one_of() {
+  local name="$1" choice; shift
+  for choice in "$@"; do [[ "$name" == "$choice" ]] && return 0; done
+  return 1
+}
+
 ONLY="" SKIP=""
 while (($#)); do
   case "$1" in
-    --only) ONLY+=" ${2:?--only needs a step}"; shift 2 ;;
-    --skip) SKIP+=" ${2:?--skip needs a name}"; shift 2 ;;
+    --only)
+      is_one_of "${2:?--only needs a step}" "${STEPS[@]}" || die "unknown step: $2 (try --list)"
+      ONLY+=" $2"; shift 2 ;;
+    --skip)
+      is_one_of "${2:?--skip needs a name}" "${STEPS[@]}" "${GROUPS_OPTIONAL[@]}" || die "unknown step or group: $2 (try --list)"
+      SKIP+=" $2"; shift 2 ;;
     --link-only) ONLY+=" link"; shift ;;
     --list) printf 'steps:  %s\ngroups: %s\n' "${STEPS[*]}" "${GROUPS_OPTIONAL[*]}"; exit 0 ;;
     -h|--help) usage; exit 0 ;;
@@ -38,30 +69,6 @@ while (($#)); do
   esac
 done
 export SKIP
-
-[[ $EUID -ne 0 ]] || { echo "Run as your normal user, not root (sudo is used when needed)." >&2; exit 1; }
-
-# Bootstrap: when piped from curl there is no repo next to this script yet
-HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)" || HERE=""
-if [[ ! -f "$HERE/scripts/lib.sh" ]]; then
-  if ! command -v git >/dev/null || ! command -v curl >/dev/null; then
-    sudo apt-get update && sudo apt-get install -y git curl
-  fi
-  if [[ -d "$SETUP_DIR/.git" ]]; then
-    git -C "$SETUP_DIR" pull --ff-only || true
-  else
-    mkdir -p "$(dirname "$SETUP_DIR")"
-    git clone "$REPO_URL" "$SETUP_DIR"
-  fi
-  args=()
-  for s in $ONLY; do args+=(--only "$s"); done
-  for s in $SKIP; do args+=(--skip "$s"); done
-  exec bash "$SETUP_DIR/install.sh" "${args[@]}"
-fi
-
-export SETUP_DIR="$HERE"
-# shellcheck source=scripts/lib.sh
-source "$SETUP_DIR/scripts/lib.sh"
 
 # Ask for the sudo password once and keep it alive while we run
 sudo -v

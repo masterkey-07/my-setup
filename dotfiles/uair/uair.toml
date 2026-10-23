@@ -1,0 +1,49 @@
+# uair pomodoro: 4 × (25m work + 5m break), then a 15m break, repeated forever.
+# Starts paused at login; controlled from the i3 pomodoro mode ($mod+t).
+loop_on_end = true
+pause_at_start = true
+# A paused timer prints nothing until resumed, so show the first session meanwhile
+# (deprecated upstream, still supported in 0.6)
+startup_text = "⏸ Work 25:00\n"
+
+[defaults]
+# One line per second; uair-status hands the latest one to i3status
+format = "{state}{name} {time}\n"
+time_format = "%M:%S"
+paused_state_text = "⏸ "
+resumed_state_text = ""
+autostart = true
+# Notification + sound when a session ends (reads the session name from $name)
+command = "pomodoro-alert"
+
+[[sessions]]
+name = "Work"
+duration = "25m"
+
+[[sessions]]
+name = "Break"
+duration = "5m"
+
+[[sessions]]
+name = "Work"
+duration = "25m"
+
+[[sessions]]
+name = "Break"
+duration = "5m"
+
+[[sessions]]
+name = "Work"
+duration = "25m"
+
+[[sessions]]
+name = "Break"
+duration = "5m"
+
+[[sessions]]
+name = "Work"
+duration = "25m"
+
+[[sessions]]
+name = "Long break"
+duration = "15m"

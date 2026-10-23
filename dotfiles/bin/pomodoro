@@ -1,0 +1,228 @@
+#!/usr/bin/env bash
+# Full-screen pomodoro display for the terminal, cava style: big block digits
+# scaled to the window and a gradient progress bar. It polls the uair instance
+# started by uair-status, so it stays in sync with the bar and $mod+t.
+# Keys: space start/pause, n next, p previous, r reset, q quit.
+
+readonly fetch_format='{state}|{name}|{time}|{total}'
+readonly poll_seconds=0.25
+readonly bar_fill='█' bar_empty='░'
+# Glyphs are 3x5 pixels (":" is 1 wide), rows top to bottom
+declare -rA font=(
+  [0]="111 101 101 101 111" [1]="110 010 010 010 111" [2]="111 001 111 100 111"
+  [3]="111 001 111 001 111" [4]="101 101 111 001 001" [5]="111 100 111 001 111"
+  [6]="111 100 111 101 111" [7]="111 001 001 001 001" [8]="111 101 111 101 111"
+  [9]="111 101 111 001 111" [:]="0 1 0 1 0"
+)
+readonly glyph_rows=5
+# 256-color palette: one color per session kind, plus a gradient for the bar
+readonly color_work=203 color_break=114 color_long_break=75 color_paused=244
+readonly -a gradient=(51 45 39 33 63 99 135 171 207 205 204 203)
+
+main() {
+  tput smcup
+  tput civis
+  stty -echo
+  trap restore_terminal EXIT
+  trap 'exit 0' INT TERM
+  # Clear leftovers of the old size; the next frame redraws everything
+  trap 'printf "\e[2J"' WINCH
+
+  local key
+  while true; do
+    draw_frame
+    if read -rsn1 -t "$poll_seconds" key; then
+      handle_key "$key" || return 0
+    fi
+  done
+}
+
+restore_terminal() {
+  stty echo
+  tput cnorm
+  tput rmcup
+}
+
+# Returns 1 when the user asked to quit
+handle_key() {
+  case $1 in
+    ' ') uairctl toggle ;;
+    n) uairctl next ;;
+    p) uairctl prev ;;
+    r) uairctl jump 0 && uairctl pause ;;
+    q) return 1 ;;
+  esac
+  return 0
+}
+
+draw_frame() {
+  local width height
+  width=$(tput cols)
+  height=$(tput lines)
+
+  local info
+  if ! info=$(uairctl fetch "$fetch_format" 2>/dev/null); then
+    render_centered "$width" "$height" "" "uair is not running (start it with uair-status)"
+    return
+  fi
+
+  local state name time total
+  IFS='|' read -r state name time total <<<"$info"
+  local color
+  color=$(session_color "$state" "$name")
+
+  local elapsed_permille
+  elapsed_permille=$(elapsed_permille "$time" "$total")
+  local title="$name"
+  [[ -n "$state" ]] && title="$state$name (paused)"
+
+  render_centered "$width" "$height" "$color" "$title" "$time" "$elapsed_permille"
+}
+
+session_color() {
+  local state=$1 name=$2
+  if [[ -n "$state" ]]; then
+    echo "$color_paused"
+  elif [[ "$name" == Work ]]; then
+    echo "$color_work"
+  elif [[ "$name" == "Long break" ]]; then
+    echo "$color_long_break"
+  else
+    echo "$color_break"
+  fi
+}
+
+# Progress in thousandths, from the remaining "MM:SS" and a total like "25m"
+elapsed_permille() {
+  local remaining_seconds total_seconds
+  remaining_seconds=$(clock_to_seconds "$1")
+  total_seconds=$(duration_to_seconds "$2")
+  if ((total_seconds == 0)); then
+    echo 0
+    return
+  fi
+  echo $(((total_seconds - remaining_seconds) * 1000 / total_seconds))
+}
+
+clock_to_seconds() {
+  local minutes=${1%%:*} seconds=${1##*:}
+  echo $((10#$minutes * 60 + 10#$seconds))
+}
+
+# uair prints durations as e.g. "1h30m", "25m" or "45s"
+duration_to_seconds() {
+  local duration=$1 total=0
+  local -A unit_seconds=([h]=3600 [m]=60 [s]=1)
+  while [[ "$duration" =~ ^([0-9]+)([hms])(.*)$ ]]; do
+    total=$((total + BASH_REMATCH[1] * unit_seconds[${BASH_REMATCH[2]}]))
+    duration=${BASH_REMATCH[3]}
+  done
+  echo "$total"
+}
+
+# Title, big clock and progress bar (the last two only when given), centered
+render_centered() {
+  local width=$1 height=$2 color=$3 title=$4 clock=${5:-} permille=${6:-}
+  local -a lines=()
+
+  if [[ -n "$clock" ]]; then
+    local scale
+    scale=$(clock_scale "$width" "$height" "$clock")
+    mapfile -t lines < <(big_text "$clock" "$scale")
+  fi
+  local block_width=${#lines[0]}
+  ((block_width < ${#title})) && block_width=${#title}
+
+  local frame=$'\e[H'
+  local content_height=$((${#lines[@]} + 4))
+  local top=$(((height - content_height) / 2))
+  # Appended inline: $(...) would strip the newlines
+  for ((line_number = 0; line_number < top; line_number++)); do
+    frame+='\e[K'$'\n'
+  done
+
+  frame+=$(centered_line "$width" "${#title}" "\e[1;38;5;${color}m${title}\e[0m")$'\n\n'
+  local line
+  for line in "${lines[@]}"; do
+    frame+=$(centered_line "$width" "${#line}" "\e[38;5;${color}m${line}\e[0m")$'\n'
+  done
+  if [[ -n "$permille" ]]; then
+    frame+=$'\n'
+    frame+=$(centered_line "$width" "$block_width" "$(progress_bar "$block_width" "$permille")")
+  fi
+  printf '%b\e[J' "$frame"
+}
+
+# Largest scale at which the clock fits in most of the window
+clock_scale() {
+  local width=$1 height=$2 clock=$3
+  local pixel_columns=0 char
+  for ((i = 0; i < ${#clock}; i++)); do
+    char=${clock:i:1}
+    local first_row=${font[$char]%% *}
+    pixel_columns=$((pixel_columns + ${#first_row} + 1))
+  done
+  # Each pixel is 2 columns wide per scale step so it looks square
+  local by_width=$((width * 8 / 10 / (pixel_columns * 2)))
+  local by_height=$((height * 6 / 10 / glyph_rows))
+  local scale=$((by_width < by_height ? by_width : by_height))
+  echo $((scale < 1 ? 1 : scale))
+}
+
+# Prints the text in the block font, each pixel scale rows tall
+big_text() {
+  local text=$1 scale=$2
+  local pixel_on pixel_off
+  pixel_on=$(repeat '█' $((scale * 2)))
+  pixel_off=$(repeat ' ' $((scale * 2)))
+
+  local row char line bits
+  for ((row = 0; row < glyph_rows; row++)); do
+    line=""
+    for ((i = 0; i < ${#text}; i++)); do
+      char=${text:i:1}
+      [[ -n "${font[$char]:-}" ]] || continue
+      local -a glyph=(${font[$char]})
+      bits=${glyph[row]}
+      for ((bit = 0; bit < ${#bits}; bit++)); do
+        [[ ${bits:bit:1} == 1 ]] && line+=$pixel_on || line+=$pixel_off
+      done
+      ((i < ${#text} - 1)) && line+=$pixel_off
+    done
+    for ((copy = 0; copy < scale; copy++)); do
+      echo "$line"
+    done
+  done
+}
+
+progress_bar() {
+  local width=$1 permille=$2
+  local filled=$((width * permille / 1000))
+  local bar="" color
+  for ((column = 0; column < width; column++)); do
+    if ((column < filled)); then
+      color=${gradient[column * ${#gradient[@]} / width]}
+      bar+="\e[38;5;${color}m${bar_fill}"
+    else
+      bar+="\e[38;5;${color_paused}m${bar_empty}"
+    fi
+  done
+  echo "${bar}\e[0m"
+}
+
+centered_line() {
+  local width=$1 visible_length=$2 text=$3
+  local padding=$(((width - visible_length) / 2))
+  ((padding < 0)) && padding=0
+  printf '%*s%s\\e[K' "$padding" "" "$text"
+}
+
+repeat() {
+  local text=$1 count=$2 result=""
+  for ((n = 0; n < count; n++)); do
+    result+=$text
+  done
+  printf '%s' "$result"
+}
+
+main "$@"

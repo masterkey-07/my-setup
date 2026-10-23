@@ -43,6 +43,9 @@ exec_always --no-startup-id feh --no-fehbg --bg-fill ~/.config/i3/Tree.jpeg
 # Move the mouse pointer to the center of a window when it gets focus
 exec --no-startup-id ~/.local/bin/focus-warp
 
+# Pomodoro timer, shown in the bar through i3status (see uair-status)
+exec --no-startup-id ~/.local/bin/uair-status
+
 # Hide the pointer after 1s idle; only real mouse input shows it again, so
 # focus-warp moves it while it stays hidden.
 exec --no-startup-id unclutter --timeout 1 --jitter 3 --ignore-scrolling --start-hidden
@@ -210,10 +213,6 @@ include ~/.config/i3/theme.conf
 
 include ~/.config/i3/screens.conf
 
-# Configuration of Media Mode
+# Configuration of Modes
 
-include ~/.config/i3/media_mode.conf
-
-# Configuration of Mouse Mode
-
-include ~/.config/i3/mouse_mode.conf
+include ~/.config/i3/pomodoro_mode.conf

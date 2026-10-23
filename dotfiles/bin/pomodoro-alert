@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Called by uair when a session ends, with the finished session's name in
+# $name: pop a notification and play a sound, so the switch between work and
+# break is noticed even away from the bar.
+
+sounds=/usr/share/sounds/freedesktop/stereo
+# Critical so it stands out, but closed after a while instead of waiting to be dismissed
+notification_timeout_ms=15000
+
+if [[ ${name:-} == Work ]]; then
+  notify-send -u critical -t "$notification_timeout_ms" -i appointment-soon Pomodoro "Work done: take a break"
+  sound=$sounds/alarm-clock-elapsed.oga
+else
+  notify-send -u critical -t "$notification_timeout_ms" -i appointment-soon Pomodoro "${name:-Break} over: back to work"
+  sound=$sounds/complete.oga
+fi
+
+paplay "$sound" || echo "pomodoro-alert: could not play $sound" >&2

@@ -1,3 +1,1 @@
 mpv ffmpeg flameshot cava
-# System monitoring / tools
-psensor lm-sensors cpupower-gui speedtest-cli

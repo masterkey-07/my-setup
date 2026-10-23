@@ -15,3 +15,6 @@ __pycache__/
 # Local secrets and overrides that must never be committed
 .env
 *.local
+
+# Editor-local workspace settings (paths differ per machine)
+.vscode/

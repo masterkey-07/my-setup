@@ -1,12 +1,18 @@
--- Servers that come with their own toolchain (rustup, go, ghcup) aren't installed through Mason
+-- Servers that come with their own toolchain (rustup, go, ghcup, dart) aren't
+-- installed through Mason; the setup scripts install them
 local mason_servers = {
     "basedpyright",
     "bashls",
     "clangd",
+    "clojure_lsp",
     "dockerls",
+    "intelephense",
+    "jdtls",
     "jsonls",
+    "kotlin_lsp",
     "lua_ls",
     "marksman",
+    "postgres_lsp",
     "ruff",
     "taplo",
     "ts_ls",

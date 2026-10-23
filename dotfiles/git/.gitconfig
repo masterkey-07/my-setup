@@ -9,3 +9,11 @@
 	name = Victor Jorge Carvalho Chaves
 [init]
 	defaultBranch = main
+[diff]
+	tool = vscode
+[difftool "vscode"]
+	cmd = code --wait --diff $LOCAL $REMOTE
+[merge]
+	tool = vscode
+[mergetool "vscode"]
+	cmd = code --wait --merge $REMOTE $LOCAL $BASE $MERGED

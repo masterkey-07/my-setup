@@ -1,4 +1,2 @@
-libreoffice okular zathura texlive-full
+libreoffice zathura texlive-full
 # Readest (ebook reader) ships as a GitHub .deb, installed in scripts/50-apps.sh
-# Focus Timer (GNOME Pomodoro) only ships on Flathub, installed in scripts/50-apps.sh
-flatpak

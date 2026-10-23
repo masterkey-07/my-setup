@@ -30,6 +30,17 @@ Suites: stable
 Components: main
 Architectures: amd64'
 
+if want dev; then
+  # Dart SDK: Google's own repo, which keeps up with releases (Ubuntu doesn't package it)
+  add_apt_repo dart https://dl-ssl.google.com/linux/linux_signing_key.pub \
+    /usr/share/keyrings/dart.gpg \
+    'Types: deb
+URIs: https://storage.googleapis.com/download.dartlang.org/linux/debian
+Suites: stable
+Components: main
+Architectures: amd64'
+fi
+
 if want comm; then
   add_apt_repo claude-desktop https://downloads.claude.ai/claude-desktop/key.asc \
     /usr/share/keyrings/claude-desktop-archive-keyring.asc \
