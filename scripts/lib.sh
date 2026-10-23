@@ -10,7 +10,7 @@ PACKAGES="$SETUP_DIR/packages"
 # install.sh runs the steps in this order; each optional group is a
 # packages/<group>.txt list (plus extras in the step scripts) that --skip turns off
 # shellcheck disable=SC2034
-STEPS=(repos apt shell tools apps vscode link post)
+STEPS=(repos apt shell tools apps vscode sync link post)
 # shellcheck disable=SC2034
 GROUPS_OPTIONAL=(gaming comm office media dev)
 

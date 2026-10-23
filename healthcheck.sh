@@ -33,6 +33,7 @@ main() {
   check_tools
   check_apps
   check_vscode
+  check_sync
   check_links
   check_configs
   check_password_safe
@@ -123,8 +124,6 @@ check_apps() {
   if lspci 2>/dev/null | grep -qi 'vga.*nvidia\|3d.*nvidia'; then
     check "NVIDIA driver loaded" nvidia-smi
   fi
-  check "syncthing service running" systemctl is-active "syncthing@$USER.service"
-  check "syncthing shares ~/Books" bash -c 'syncthing cli config folders list | grep -qix my-books'
   want office && check "readest" has readest
   want comm && check "discord" has discord
   want gaming && check "steam" has steam
@@ -139,6 +138,15 @@ check_vscode() {
     grep -qx "${ext,,}" <<<"$installed" || missing+=("$ext")
   done < <(read_list "$DOTFILES/vscode/extensions.txt")
   if ((${#missing[@]})); then fail "missing ${missing[*]}"; else pass "all extensions installed"; fi
+}
+
+check_sync() {
+  log "syncthing"
+  check "syncthing service running" systemctl is-active "syncthing@$USER.service"
+  check "syncthing shares ~/Books" bash -c 'syncthing cli config folders list | grep -qix my-books'
+  check "syncthing shares ~/Vault" bash -c 'syncthing cli config folders list | grep -qix my-vault'
+  check "~/Vault keeps old versions" bash -c \
+    '[[ "$(syncthing cli config folders my-vault versioning type get)" == staggered ]]'
 }
 
 check_links() {
@@ -177,9 +185,6 @@ nvim_starts_cleanly() {
 check_password_safe() {
   log "password safe"
   seed_configs check_seeded
-  check "syncthing shares ~/Vault" bash -c 'syncthing cli config folders list | grep -qix my-vault'
-  check "~/Vault keeps old versions" bash -c \
-    '[[ "$(syncthing cli config folders my-vault versioning type get)" == staggered ]]'
   check "a vault exists in ~/Vault" bash -c 'compgen -G "$HOME/Vault/*.kdbx"'
   check "Chrome policy installed" test -f /etc/opt/chrome/policies/managed/keepassxc.json
   check "keepassxc running" pgrep -x keepassxc
