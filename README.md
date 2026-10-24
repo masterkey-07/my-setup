@@ -29,7 +29,7 @@ Optional groups (all on by default, each one can be skipped with `--skip`):
 - `comm`: Discord, Claude Desktop, AnyDesk
 - `office`: LibreOffice, Zathura, Readest, texlive-full (several GB)
 - `media`: mpv, ffmpeg, flameshot, cava
-- `dev`: Go, Dart, PHP + Composer, PostgreSQL, build headers, Docker engine + Compose v2 + buildx
+- `dev`: Go, Dart, PHP + Composer, PostgreSQL, CMake + Ninja + Clang, build headers (incl. GTK 3), Docker engine + Compose v2 + buildx
   (adds you to the `docker` group), and the toolchains from the `tools` step (rust-analyzer, Haskell, JVM, Clojure)
 
 ## Options
@@ -63,6 +63,7 @@ It only reads, never installs or links, and exits 1 if anything fails. Re-run `.
 | [dotfiles/vscode/settings.json](dotfiles/vscode/settings.json) | `~/.config/Code/User/settings.json`          |
 | [dotfiles/bin/](dotfiles/bin/)                                 | `~/.local/bin/` (`kitty-fast`, `screenshot`) |
 | [dotfiles/uair/uair.toml](dotfiles/uair/uair.toml)             | `~/.config/uair/uair.toml`                   |
+| [dotfiles/systemd/](dotfiles/systemd/)                         | `~/.config/systemd/user/` (timers enabled)   |
 
 Neovim is the editor: `vim`/`vi`/`v` are aliased to `nvim` and it's `$EDITOR`. Its config is
 plain options and keymaps, with no plugins.
@@ -81,6 +82,28 @@ versioning so a bad or deleted vault can be recovered). It starts minimized with
 brings it up) and also acts as the Secret Service keyring and the SSH agent. Chrome's own
 password manager is turned off by policy and the KeePassXC-Browser extension is force-installed
 ([dotfiles/chrome/policies/](dotfiles/chrome/policies/)). Vault and key files are gitignored.
+
+## Books
+
+`~/Books` is synced by Syncthing and read in Readest and Zathura. `book-check` scans it for
+content that could run code or phone home when a book is opened, and a weekly user timer
+(`book-check.timer`) runs it with a desktop notification when something is flagged.
+
+```bash
+book-check                          # scan ~/Books; exits 1 if anything is DANGER
+book-check some.pdf other.epub      # specific books or folders
+book-check --mark-reviewed some.pdf # mute a flagged book until the file changes
+```
+
+- **DANGER**: PDF JavaScript that runs by itself (on open, page or field events), `/Launch` of a
+  program, embedded executables; EPUB scripts it ships or loads remotely, `javascript:` URLs,
+  XML entities, path traversal, zip bombs; files that aren't what their extension says.
+- **REVIEW**: JavaScript behind links, `/Launch` of a file next to the book, embedded files,
+  forms that submit data, EPUB event handlers, remote images/styles, malformed files.
+
+ClamAV (`office` group) adds a second opinion with default signatures only. Its PUA heuristics
+are left off because they flag ordinary PDFs, and it misses a lot of malware, so a ClamAV hit
+is only a REVIEW and the structural checks decide.
 
 To add software, add the package to a list in [packages/](packages/). Use a step script
 in [scripts/](scripts/) if it isn't in apt.

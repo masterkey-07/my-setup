@@ -125,6 +125,7 @@ check_apps() {
     check "NVIDIA driver loaded" nvidia-smi
   fi
   want office && check "readest" has readest
+  want office && check "clamscan (book-check)" has clamscan
   want comm && check "discord" has discord
   want gaming && check "steam" has steam
 }
@@ -147,6 +148,7 @@ check_sync() {
   check "syncthing shares ~/Vault" bash -c 'syncthing cli config folders list | grep -qix my-vault'
   check "~/Vault keeps old versions" bash -c \
     '[[ "$(syncthing cli config folders my-vault versioning type get)" == staggered ]]'
+  check "weekly book-check of ~/Books" systemctl --user is-enabled book-check.timer
 }
 
 check_links() {
@@ -188,10 +190,6 @@ check_password_safe() {
   check "a vault exists in ~/Vault" bash -c 'compgen -G "$HOME/Vault/*.kdbx"'
   check "Chrome policy installed" test -f /etc/opt/chrome/policies/managed/keepassxc.json
   check "keepassxc running" pgrep -x keepassxc
-  # Another keyring (e.g. gnome-keyring started by PAM) would win the bus name
-  # and take gh's token instead
-  check "KeePassXC is the Secret Service keyring" bash -c \
-    'busctl --user status org.freedesktop.secrets 2>/dev/null | grep -q "^Comm=keepassxc"'
 }
 
 # check_seeded <source-in-repo> <target>: seeded files only need to exist

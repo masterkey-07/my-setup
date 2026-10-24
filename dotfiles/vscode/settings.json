@@ -48,5 +48,7 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "git.openRepositoryInParentFolders": "always",
-  "editor.inlineSuggest.enabled": false
+  "editor.inlineSuggest.enabled": false,
+  "redhat.telemetry.enabled": true,
+  "claudeCode.environmentVariables": []
 }

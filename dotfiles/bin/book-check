@@ -1,0 +1,59 @@
+#!/usr/bin/env python3
+# Check the PDF and EPUB books in ~/Books (or the given files/folders) for
+# content that could run code or phone home when opened: PDF JavaScript and
+# launch actions, scripts and remote resources in EPUBs (Readest renders them
+# in a webview), zip bombs, path traversal and files that aren't what their
+# extension says. Run weekly by book-check.timer with --notify.
+#
+# The structural checks decide the verdict. ClamAV, when installed, adds an
+# extra opinion with its default signatures only: its PUA heuristics flag
+# ordinary PDFs, and it misses a lot of malware, so a hit means REVIEW.
+#
+#   CLEAN   nothing found
+#   REVIEW  active or unusual content worth a look (exit 0)
+#   DANGER  content that can run code or attack the reader (exit 1)
+#
+# Once a flagged book has been looked at, `book-check --mark-reviewed <book>`
+# mutes it until the file changes (it is remembered by its SHA-256).
+#
+# The checks live in the book_check package next to this script; Python
+# finds it through the ~/.local/bin symlink because it resolves the link.
+import argparse
+import sys
+
+from book_check.clamav import run_clamav
+from book_check.common import DANGER, SHELF
+from book_check.report import notify, report
+from book_check.reviewed import load_reviewed, mark_reviewed
+from book_check.scan import check_book, scan_paths
+
+
+def main():
+    args = parse_args()
+    books = sorted(set(scan_paths(args.paths)))
+    if args.mark_reviewed:
+        mark_reviewed(books)
+        return
+    results = {book: check_book(book) for book in books}
+    if not args.no_clamav:
+        for book, finding in run_clamav(books):
+            results[book].append(finding)
+    counts = report(results, load_reviewed())
+    if args.notify:
+        notify(counts)
+    sys.exit(1 if counts[DANGER] else 0)
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Check PDF/EPUB books for unsafe content.")
+    parser.add_argument("paths", nargs="*", default=[SHELF], help="books or folders (default: %(default)s)")
+    parser.add_argument("--notify", action="store_true", help="desktop notification when something is flagged")
+    parser.add_argument("--no-clamav", action="store_true", help="skip the ClamAV scan")
+    parser.add_argument(
+        "--mark-reviewed", action="store_true", help="mute the given books until they change, instead of checking"
+    )
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    main()

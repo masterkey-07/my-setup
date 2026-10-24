@@ -1,2 +1,4 @@
 libreoffice zathura texlive-full
+# Extra opinion for book-check (signatures only); clamav-freshclam keeps them updated
+clamav
 # Readest (ebook reader) ships as a GitHub .deb, installed in scripts/50-apps.sh

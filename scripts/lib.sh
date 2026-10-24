@@ -145,7 +145,7 @@ same_content() {
 # link_configs <fn>: call <fn> <source-in-repo> <target> for every config the
 # link step manages (90-link.sh passes link, healthcheck.sh a checker)
 link_configs() {
-  local fn="$1" skill bin app
+  local fn="$1" skill bin unit app
   "$fn" "$DOTFILES/zsh/.zshrc"            "$HOME/.zshrc"
   "$fn" "$DOTFILES/git/.gitconfig"        "$HOME/.gitconfig"
   "$fn" "$DOTFILES/kitty/kitty.conf"      "$HOME/.config/kitty/kitty.conf"
@@ -173,6 +173,11 @@ link_configs() {
   for bin in "$DOTFILES"/bin/*; do
     [[ -f "$bin" ]] || continue
     "$fn" "$bin" "$HOME/.local/bin/$(basename "$bin")"
+  done
+
+  # systemd user units (90-link.sh enables the timers)
+  for unit in "$DOTFILES"/systemd/*; do
+    "$fn" "$unit" "$HOME/.config/systemd/user/$(basename "$unit")"
   done
 
   # Rofi launcher entries (e.g. web UIs opened as Chrome app windows).

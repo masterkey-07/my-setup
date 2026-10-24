@@ -1,0 +1,11 @@
+[Unit]
+Description=Weekly book-check of ~/Books
+
+[Timer]
+OnCalendar=weekly
+# Run at the next login when the machine was off at the scheduled time
+Persistent=true
+RandomizedDelaySec=1h
+
+[Install]
+WantedBy=timers.target

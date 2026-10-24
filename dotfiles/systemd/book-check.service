@@ -1,0 +1,10 @@
+[Unit]
+Description=Check ~/Books for unsafe PDF/EPUB content
+Documentation=file://%h/Repositories/my-setup/dotfiles/bin/book-check
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/book-check --notify
+# A scan in the background shouldn't slow down the desktop
+Nice=19
+IOSchedulingClass=idle
