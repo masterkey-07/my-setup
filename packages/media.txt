@@ -1,1 +1,1 @@
-mpv ffmpeg flameshot cava
+mpv ffmpeg cava

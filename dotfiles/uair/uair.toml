@@ -1,5 +1,5 @@
 # uair pomodoro: 4 × (25m work + 5m break), then a 15m break, repeated forever.
-# Starts paused at login; controlled from the i3 pomodoro mode ($mod+t).
+# Starts paused at login; controlled from the sway pomodoro mode ($mod+t).
 loop_on_end = true
 pause_at_start = true
 # A paused timer prints nothing until resumed, so show the first session meanwhile
@@ -7,7 +7,7 @@ pause_at_start = true
 startup_text = "⏸ Work 25:00\n"
 
 [defaults]
-# One line per second; uair-status hands the latest one to i3status
+# One line per second; uair-status hands the latest one to sway-status
 format = "{state}{name} {time}\n"
 time_format = "%M:%S"
 paused_state_text = "⏸ "

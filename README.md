@@ -13,7 +13,7 @@ symlinks the configs. It is safe to re-run: steps that are already done are skip
 
 | Step     | What                                                                                                                                                                                        |
 | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `repos`  | apt sources: Google Chrome, VS Code, Claude Desktop (comm), AnyDesk (comm), Dart (dev); multiverse + i386                                                                                   |
+| `repos`  | apt sources: Google Chrome, Brave, VS Code, Claude Desktop (comm), AnyDesk (comm), Dart (dev); multiverse + i386                                                                            |
 | `apt`    | [packages/core.txt](packages/core.txt) + the optional groups below; Chrome policy (KeePassXC-Browser, no built-in password manager)                                                         |
 | `shell`  | oh-my-zsh, zsh-autosuggestions / syntax-highlighting / interactive-cd, starship, Caskaydia Cove Nerd Font, zsh as default shell                                                             |
 | `tools`  | bottom (`btm`), procs, tokei, Neovim, uv, nvm + Node LTS, Claude Code, rustup, uair (pomodoro); with `dev`: rust-analyzer, gopls, ghcup, SDKMAN! (Java, Maven, Gradle, Kotlin), Clojure CLI |
@@ -28,7 +28,7 @@ Optional groups (all on by default, each one can be skipped with `--skip`):
 - `gaming`: Steam, Lutris, Wine, Chiaki
 - `comm`: Discord, Claude Desktop, AnyDesk
 - `office`: LibreOffice, Zathura, Readest, texlive-full (several GB)
-- `media`: mpv, ffmpeg, flameshot, cava
+- `media`: mpv, ffmpeg, cava
 - `dev`: Go, Dart, PHP + Composer, PostgreSQL, CMake + Ninja + Clang, build headers (incl. GTK 3), Docker engine + Compose v2 + buildx
   (adds you to the `docker` group), and the toolchains from the `tools` step (rust-analyzer, Haskell, JVM, Clojure)
 
@@ -57,7 +57,7 @@ It only reads, never installs or links, and exits 1 if anything fails. Re-run `.
 | -------------------------------------------------------------- | -------------------------------------------- |
 | [dotfiles/zsh/.zshrc](dotfiles/zsh/.zshrc)                     | `~/.zshrc`                                   |
 | [dotfiles/kitty/kitty.conf](dotfiles/kitty/kitty.conf)         | `~/.config/kitty/kitty.conf`                 |
-| [dotfiles/i3/](dotfiles/i3/)                                   | `~/.config/i3`                               |
+| [dotfiles/sway/](dotfiles/sway/)                               | `~/.config/sway`                             |
 | [dotfiles/git/.gitconfig](dotfiles/git/.gitconfig)             | `~/.gitconfig`                               |
 | [dotfiles/nvim/](dotfiles/nvim/)                               | `~/.config/nvim`                             |
 | [dotfiles/vscode/settings.json](dotfiles/vscode/settings.json) | `~/.config/Code/User/settings.json`          |
@@ -78,7 +78,7 @@ the Chrome native-messaging manifest to `~/.config/google-chrome/NativeMessaging
 ## Password safe
 
 KeePassXC, with the vault in `~/Vault`, synced by Syncthing (folder `my-vault`, with staggered
-versioning so a bad or deleted vault can be recovered). It starts minimized with i3 (`$mod+x`
+versioning so a bad or deleted vault can be recovered). It starts minimized with Sway (`$mod+x`
 brings it up) and also acts as the Secret Service keyring and the SSH agent. Chrome's own
 password manager is turned off by policy and the KeePassXC-Browser extension is force-installed
 ([dotfiles/chrome/policies/](dotfiles/chrome/policies/)). Vault and key files are gitignored.
@@ -111,7 +111,7 @@ in [scripts/](scripts/) if it isn't in apt.
 ## Manual steps
 
 - NVIDIA GPU: the driver is installed automatically; reboot once afterwards.
-- Log out and pick the **i3** session on the login screen.
+- Log out and pick the **Sway (hybrid GPU)** session on the login screen.
 - Password safe, first machine only: create `~/Vault/main.kdbx` in KeePassXC (Argon2id, a
   generated 6–7 word passphrase, written down once and kept offline). Import Chrome's passwords
   (export a CSV from Google Password Manager, import it, then `shred -u` the CSV), delete them

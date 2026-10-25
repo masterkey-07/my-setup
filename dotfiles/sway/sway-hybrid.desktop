@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Sway (hybrid GPU)
+Comment=Sway on a laptop whose NVIDIA module is loaded (it refuses to start otherwise)
+Exec=sh -lc "exec sway --unsupported-gpu"
+Type=Application
+DesktopNames=sway

@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # Single Chrome app window per site: `webapp web.whatsapp.com` focuses the
 # window if it's already open, otherwise launches it. Chrome --app windows
-# have no tabs/URL bar and get the site's host as their WM instance, which is
-# what the i3 criteria match on.
+# have no tabs/URL bar; under XWayland their WM instance is the site's host,
+# natively on Wayland their app_id is chrome-<host>__-Default.
 
 host=${1:?usage: webapp <host>}
 
-i3-msg -q "[instance=\"$host\"] focus" 2>/dev/null ||
+swaymsg -q "[instance=\"$host\"] focus" 2>/dev/null ||
+  swaymsg -q "[app_id=\"chrome-${host}__-Default\"] focus" 2>/dev/null ||
   exec google-chrome --app="https://$host"

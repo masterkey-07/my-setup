@@ -33,11 +33,11 @@ if has google-chrome-stable && ! chrome_signed_in; then
     read -rp "    sign in (and turn on sync) in Chrome, then press Enter "
     chrome_signed_in || warn "Chrome still not signed in; sign in later from its profile menu"
   else
-    warn "no graphical session; sign in to Chrome after logging into i3"
+    warn "no graphical session; sign in to Chrome after logging into sway"
   fi
 fi
 
 log "next steps"
-info "- log out and pick the i3 session at the login screen"
+info "- log out and pick the Sway (hybrid GPU) session at the login screen"
 info "- reboot if an NVIDIA driver was just installed"
 info "- open a new terminal so zsh, starship and the font take effect"

@@ -1,5 +1,5 @@
 -- Groups Monokai paints with its solid base2 background, mapped to their foreground.
--- Clearing the background lets kitty's background_opacity (and picom's blur) show
+-- Clearing the background lets kitty's background_opacity show
 -- through; floats keep their background.
 local transparent_group_fg = {
     Normal = "white",

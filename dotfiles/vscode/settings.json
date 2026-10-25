@@ -1,5 +1,4 @@
 {
-  "security.workspace.trust.untrustedFiles": "open",
   "terminal.integrated.profiles.linux": {
     "bash": {
       "path": "bash",
@@ -7,17 +6,6 @@
     },
     "zsh": {
       "path": "/usr/bin/zsh"
-    },
-    "fish": {
-      "path": "fish"
-    },
-    "tmux": {
-      "path": "tmux",
-      "icon": "terminal-tmux"
-    },
-    "pwsh": {
-      "path": "pwsh",
-      "icon": "terminal-powershell"
     }
   },
   "terminal.integrated.defaultProfile.linux": "zsh",
@@ -49,6 +37,6 @@
   },
   "git.openRepositoryInParentFolders": "always",
   "editor.inlineSuggest.enabled": false,
-  "redhat.telemetry.enabled": true,
+  "redhat.telemetry.enabled": false,
   "claudeCode.environmentVariables": []
 }

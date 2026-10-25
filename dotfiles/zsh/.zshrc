@@ -1,6 +1,6 @@
 export ZSH="$HOME/.oh-my-zsh"
 
-ZSH_THEME="robbyrussell"
+ZSH_THEME=""  # starship draws the prompt
 plugins=(git web-search zsh-autosuggestions zsh-syntax-highlighting zsh-interactive-cd)
 
 source $ZSH/oh-my-zsh.sh
@@ -18,9 +18,9 @@ alias ren="mv"
 alias move='mv'
 
 # NAVIGATION ALIAS
-alias ff="run \"\$(readlink -f \"\$(find . --type f | fzf --preview 'bat --style numbers,changes --color=always {}')\")\""
-alias gf="cd \"\$(dirname \"\$(readlink -f \"\$(find . --type f | fzf)\")\")\""
-alias gd="cd \"\$(readlink -f \"\$(find . --type d | fzf)\")\""
+alias ff="run \"\$(readlink -f \"\$(fdfind --type f | fzf --preview 'bat --style numbers,changes --color=always {}')\")\""
+alias gf="cd \"\$(dirname \"\$(readlink -f \"\$(fdfind --type f | fzf)\")\")\""
+alias gd="cd \"\$(readlink -f \"\$(fdfind --type d | fzf)\")\""
 
 # APT ALIAS
 alias install="sudo apt install"
@@ -35,18 +35,22 @@ alias update-system="update && upgrade && dist-upgrade && autoremove"
 alias analyze="btm"
 alias top="procs"
 alias hell="tokei"
-alias find="fdfind"
 alias dir="eza --icons"
-alias ls="eza --icons -la"
 alias l="eza --icons"
-alias cd="z"
+
+# Claude Code sources this file for its own shell; keep its commands on the real tools
+if [[ -z $CLAUDECODE ]]; then
+  alias find="fdfind"
+  alias ls="eza --icons -la"
+  alias cd="z"
+fi
 
 # KITTY ALIAS
 alias icat="kitty +kitten icat"
 
 # APPLICATION ALIAS
 alias run="xdg-open"
-alias terminal="gnome-terminal"
+alias terminal="kitty"
 alias disk="ncdu"
 alias vim="nvim"
 alias vi="nvim"
@@ -56,14 +60,14 @@ alias v="nvim"
 alias reload="source ~/.zshrc"
 alias config="nvim ~/.zshrc"
 alias whatsapp="google-chrome https://web.whatsapp.com/ &"
-alias shutdown="shutdown --n now"
-alias clip="xclip -sel clip"
-alias git-push="git add . && git commit -m update && git push"
+alias shutdown="shutdown now"
+alias clip="wl-copy"
+# Tracked files only, so stray new files never get committed by accident
+alias git-push="git commit -am update && git push"
 
-# XRANDR
-alias xauto="xrandr --auto"
-alias edpoff="xrandr --output eDP --off" 
-alias edpon="xrandr --output eDP --auto" 
+# OUTPUTS
+alias edpoff="swaymsg output eDP-1 disable"
+alias edpon="swaymsg output eDP-1 enable"
 
 # FUNCTIONS
 c () { z "$@" && l; }
@@ -73,7 +77,7 @@ claudeit () { { (( $# == 0 )) || z "$@"; } && claude; }
 
 # Python
 
-alias py="python"
+alias py="python3"
 
 # UV
 if [ -f "$HOME/.local/bin/env" ]; then . "$HOME/.local/bin/env"; else export PATH="$HOME/.local/bin:$PATH"; fi

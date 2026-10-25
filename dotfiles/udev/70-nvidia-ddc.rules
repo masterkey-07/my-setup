@@ -1,0 +1,5 @@
+# Let the logged-in user read the NVIDIA GPU's DDC buses, so hdmi-watch can
+# ask the monitor for its EDID: the driver keeps reporting HDMI as connected
+# after unplugging, and probing the cable is the only reliable check.
+# uaccess has to be tagged before 73-seat-late.rules applies it.
+SUBSYSTEM=="i2c-dev", ATTR{name}=="NVIDIA i2c adapter*", TAG+="uaccess"

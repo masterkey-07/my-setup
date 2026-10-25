@@ -2,21 +2,19 @@
 build-essential pkg-config curl wget git gh unzip zip tree
 
 # Terminal + shell
-zsh kitty fzf zoxide eza bat fd-find ripgrep ncdu xclip
+zsh kitty fzf zoxide eza bat fd-find ripgrep ncdu wl-clipboard
 
 # System monitoring
 psensor lm-sensors cpupower-gui speedtest-cli
 
-# Xorg server: 26.04 is Wayland-only by default and no longer pulls it in, but i3 needs X11
-xserver-xorg-core xserver-xorg-input-libinput xserver-xorg-input-all
-
-# i3 desktop (the i3 config uses all of these)
-i3 i3status i3lock xss-lock dex rofi network-manager-gnome pulseaudio-utils x11-xserver-utils feh picom autorandr unclutter-xfixes bibata-cursor-theme
+# Sway desktop and its helpers (grim, slurp and swappy: bin/screenshot;
+# the portal: screen sharing; brightnessctl: brightness keys)
+sway swaybg swayidle swaylock xdg-desktop-portal-wlr grim slurp swappy dex rofi network-manager-gnome pulseaudio-utils brightnessctl bibata-cursor-theme
 # Pomodoro alerts (pomodoro-alert): notify-send and the freedesktop sounds
 libnotify-bin sound-theme-freedesktop
 
 # Main apps (syncthing runs as a service, set up in 20-apt.sh)
-google-chrome-stable code syncthing
+google-chrome-stable brave-browser code syncthing
 
 # Password safe; -full is the build with browser integration and keepassxc-proxy
 # (vault synced by syncthing, settings seeded in 90-link.sh)

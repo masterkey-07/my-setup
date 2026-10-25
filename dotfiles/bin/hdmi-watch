@@ -1,0 +1,123 @@
+#!/usr/bin/env python3
+# Turn the external monitor on/off in sway when its cable is plugged/unplugged.
+# The NVIDIA driver sends no hotplug event on unplug and keeps the output
+# "connected" (with a cached EDID), so sway would keep the dead output and its
+# workspaces. Instead, ask the monitor itself for its EDID over the GPU's DDC
+# buses: it only answers while the cable is in. Started from the sway config.
+#
+# Needs read access to /dev/i2c-* (dotfiles/udev/70-nvidia-ddc.rules).
+# Acts only when the cable state changes, so the $mod+Ctrl+m toggle still works.
+import fcntl
+import glob
+import json
+import os
+import subprocess
+import sys
+import time
+
+POLL_SECONDS = 2
+# One failed read can be a busy bus; unplugging only counts after this many
+MISSES_BEFORE_UNPLUG = 2
+NVIDIA_BUS_NAME = "NVIDIA i2c adapter"
+I2C_SLAVE = 0x0703  # ioctl from linux/i2c-dev.h
+EDID_ADDRESS = 0x50
+EDID_HEADER = bytes([0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00])
+LAPTOP_OUTPUT_PREFIX = "eDP"
+
+
+def main():
+    buses = nvidia_buses()
+    if not buses:
+        sys.exit("hdmi-watch: no NVIDIA DDC bus found")
+    check_access(buses)
+
+    was_plugged = None
+    misses = 0
+    while True:
+        has_answered = any(monitor_answers(bus) for bus in buses)
+        misses = 0 if has_answered else misses + 1
+        is_plugged = has_answered or (
+            bool(was_plugged) and misses < MISSES_BEFORE_UNPLUG
+        )
+
+        if is_plugged != was_plugged:
+            set_external_outputs(enabled=is_plugged)
+            was_plugged = is_plugged
+        time.sleep(POLL_SECONDS)
+
+
+def nvidia_buses():
+    buses = []
+    for name_file in glob.glob("/sys/class/i2c-dev/i2c-*/name"):
+        with open(name_file) as f:
+            if f.read().startswith(NVIDIA_BUS_NAME):
+                buses.append("/dev/" + os.path.basename(os.path.dirname(name_file)))
+    return sorted(buses)
+
+
+def check_access(buses):
+    unreadable = [bus for bus in buses if not os.access(bus, os.R_OK | os.W_OK)]
+    if unreadable:
+        sys.exit(
+            f"hdmi-watch: no access to {', '.join(unreadable)}; "
+            "install dotfiles/udev/70-nvidia-ddc.rules"
+        )
+
+
+def monitor_answers(bus):
+    """True when a monitor on this bus returns a valid EDID header."""
+    try:
+        fd = os.open(bus, os.O_RDWR)
+    except OSError as error:
+        print(f"hdmi-watch: can't open {bus}: {error}", file=sys.stderr)
+        return False
+    try:
+        fcntl.ioctl(fd, I2C_SLAVE, EDID_ADDRESS)
+        os.write(fd, b"\x00")  # start reading at offset 0
+        return os.read(fd, len(EDID_HEADER)) == EDID_HEADER
+    except OSError:
+        return False  # nothing answers at the EDID address: no cable
+    finally:
+        os.close(fd)
+
+
+def set_external_outputs(enabled):
+    laptop, external = split_outputs()
+    action = "enable" if enabled else "disable"
+    if not enabled:
+        # After `edpoff`, disabling the external monitor would leave sway with
+        # no output at all (black screen), so bring the laptop screen back first
+        for name in laptop:
+            set_output(name, "enable")
+    for name in external:
+        set_output(name, action)
+
+
+def set_output(name, action):
+    result = subprocess.run(
+        ["swaymsg", "-q", "output", name, action], capture_output=True, text=True
+    )
+    if result.returncode != 0:
+        print(
+            f"hdmi-watch: swaymsg output {name} {action} failed: "
+            f"{result.stderr.strip()}",
+            file=sys.stderr,
+        )
+
+
+def split_outputs():
+    """(laptop, external) output names, disabled ones included."""
+    result = subprocess.run(
+        ["swaymsg", "-t", "get_outputs", "-r"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    names = [o["name"] for o in json.loads(result.stdout)]
+    laptop = [n for n in names if n.startswith(LAPTOP_OUTPUT_PREFIX)]
+    external = [n for n in names if not n.startswith(LAPTOP_OUTPUT_PREFIX)]
+    return laptop, external
+
+
+if __name__ == "__main__":
+    main()

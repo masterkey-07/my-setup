@@ -1,4 +1,4 @@
-/* rofi: app launcher ($mod+d in i3). Translucent panel, blurred by picom. */
+/* rofi: app launcher ($mod+d in sway). Translucent panel. */
 
 configuration {
   modi: "drun,run,window";

@@ -59,3 +59,25 @@ if has google-chrome-stable && ! cmp -s "$CHROME_POLICY" "$CHROME_POLICY_DIR/kee
   info "chrome policy: KeePassXC instead of the built-in password manager"
   sudo install -D -m 644 "$CHROME_POLICY" "$CHROME_POLICY_DIR/keepassxc.json"
 fi
+
+# Sway session for the hybrid GPU: Sway refuses to start while the NVIDIA
+# module is loaded unless it gets --unsupported-gpu. GDM only reads system
+# session files, so it can't be linked from the repo.
+SWAY_SESSION="$DOTFILES/sway/sway-hybrid.desktop"
+SWAY_SESSION_DIR=/usr/share/wayland-sessions
+if has sway && ! cmp -s "$SWAY_SESSION" "$SWAY_SESSION_DIR/sway-hybrid.desktop"; then
+  info "GDM session: Sway (hybrid GPU)"
+  sudo install -m 644 "$SWAY_SESSION" "$SWAY_SESSION_DIR/sway-hybrid.desktop"
+fi
+
+# DDC access for hdmi-watch: the NVIDIA driver can't tell when HDMI is
+# unplugged, so the watcher asks the monitor over I2C. udev rules must be
+# system files too.
+DDC_RULE="$DOTFILES/udev/70-nvidia-ddc.rules"
+UDEV_RULES_DIR=/etc/udev/rules.d
+if ! cmp -s "$DDC_RULE" "$UDEV_RULES_DIR/70-nvidia-ddc.rules"; then
+  info "udev: NVIDIA DDC access for hdmi-watch"
+  sudo install -m 644 "$DDC_RULE" "$UDEV_RULES_DIR/70-nvidia-ddc.rules"
+  sudo udevadm control --reload
+  sudo udevadm trigger --subsystem-match=i2c-dev
+fi

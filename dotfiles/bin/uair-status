@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # Run the uair pomodoro timer and keep its latest line in a file for the
-# i3status read_file block (started by the i3 config). i3status can't run
-# commands itself, and only rereads files every few seconds, so it is told to
-# refresh after each line.
+# sway-status pomodoro block (started by the sway config). sway-status only
+# rereads it every few seconds, so it is told to redraw after each line.
 set -euo pipefail
 
 status_file="$HOME/.cache/uair-status"
@@ -11,8 +10,9 @@ mkdir -p "${status_file%/*}"
 trap 'rm -f "$status_file" "$status_file.tmp"' EXIT
 
 uair | while IFS= read -r line; do
-  # Write then rename, so i3status never reads a half-written file
+  # Write then rename, so sway-status never reads a half-written file
   printf '%s\n' "$line" >"$status_file.tmp"
   mv "$status_file.tmp" "$status_file"
-  pkill -USR1 -x i3status || true
+  # -f: started through env, so its process name is bash, not sway-status
+  pkill -USR1 -f '^bash .*/sway-status$' || true
 done

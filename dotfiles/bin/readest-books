@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Pick a book from ~/Books with rofi and open it in Readest (bound to $mod+b
-# in the i3 config). Books you have started come first, most recently read on
+# in the sway config). Books you have started come first, most recently read on
 # top, then the rest of the shelf by name.
 import json
 import os

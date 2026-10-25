@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
 # Pull an app's window to the current workspace: `summon com.anthropic.Claude
 # claude-desktop` moves and focuses the window if it's already open, otherwise
-# runs the command. Lives in a script because i3 splits bindsym on commas.
+# runs the command. Lives in a script because sway splits bindsym on commas.
+# XWayland windows match on class, native Wayland ones on app_id.
 
-class=${1:?usage: summon <wm-class> <command...>}
+id=${1:?usage: summon <class-or-app-id> <command...>}
 shift
 
-i3-msg -q "[class=\"$class\"] move container to workspace current, focus" 2>/dev/null ||
-  exec "${@:?usage: summon <wm-class> <command...>}"
+pull_here() {
+  swaymsg -q "[$1=\"$id\"] move container to workspace current, focus" 2>/dev/null
+}
+
+pull_here class || pull_here app_id ||
+  exec "${@:?usage: summon <class-or-app-id> <command...>}"

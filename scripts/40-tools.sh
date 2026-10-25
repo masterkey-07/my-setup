@@ -90,8 +90,8 @@ if ! has rustup; then
   curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs | sh -s -- -y --no-modify-path
 fi
 
-# uair: pomodoro timer for the i3bar; it ships no release binaries, so build it.
-# --root ~/.local puts uair and uairctl on the PATH i3 already uses
+# uair: pomodoro timer for swaybar; it ships no release binaries, so build it.
+# --root ~/.local puts uair and uairctl on the PATH sway already uses
 if ! has uair; then
   info "uair"
   cargo install --locked --root "$HOME/.local" uair

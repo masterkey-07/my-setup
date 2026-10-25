@@ -3,7 +3,7 @@ set -euo pipefail
 # shellcheck source=scripts/lib.sh
 source "$SETUP_DIR/scripts/lib.sh"
 
-# Third-party apt sources. Steam, Discord and Obsidian come as .debs in the apps step.
+# Third-party apt sources (Chrome, Brave, VS Code, ...). Steam, Discord and Obsidian come as .debs in the apps step.
 
 sudo apt-get update
 apt_install ca-certificates curl gnupg software-properties-common wget
@@ -18,6 +18,15 @@ add_apt_repo google-chrome https://dl.google.com/linux/linux_signing_key.pub \
   /usr/share/keyrings/google-chrome.gpg \
   'Types: deb
 URIs: https://dl.google.com/linux/chrome-stable/deb/
+Suites: stable
+Components: main
+Architectures: amd64'
+
+# The key is already binary; gpg --dearmor passes it through unchanged
+add_apt_repo brave-browser https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg \
+  /usr/share/keyrings/brave-browser-archive-keyring.gpg \
+  'Types: deb
+URIs: https://brave-browser-apt-release.s3.brave.com
 Suites: stable
 Components: main
 Architectures: amd64'

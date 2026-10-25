@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+# Status line for swaybar (status_command in the sway config): pomodoro, Wi-Fi,
+# battery, memory and clock, one plain-text line every few seconds. SIGUSR1
+# redraws at once, so uair-status can push each new timer line right away.
+set -uo pipefail
+
+readonly REFRESH_SECONDS=5
+readonly POMODORO_FILE="$HOME/.cache/uair-status"
+readonly BATTERY_DIR=/sys/class/power_supply/BAT1
+readonly LOW_MEMORY_KIB=$((1024 * 1024))
+readonly SEPARATOR=" | "
+
+main() {
+  local sleeper
+  # Killing the sleep ends the wait early; the loop then redraws
+  trap '[[ -n "${sleeper:-}" ]] && kill "$sleeper" 2>/dev/null' USR1
+  while true; do
+    status_line
+    sleep "$REFRESH_SECONDS" &
+    sleeper=$!
+    wait "$sleeper"
+  done
+}
+
+status_line() {
+  local line="" block
+  for block in "$(pomodoro)" "$(wifi)" "$(battery)" "$(memory)" "$(date '+%H:%M %d/%m/%Y')"; do
+    [[ -z "$block" ]] && continue
+    line+="${line:+$SEPARATOR}$block"
+  done
+  printf '%s\n' "$line"
+}
+
+# Missing file means the timer isn't running, so the block is hidden
+pomodoro() {
+  [[ -r "$POMODORO_FILE" ]] && cat "$POMODORO_FILE"
+}
+
+wifi() {
+  local ssid
+  ssid=$(nmcli -t -f TYPE,NAME connection show --active 2>/dev/null |
+    awk -F: '$1 == "802-11-wireless" {print $2; exit}')
+  if [[ -n "$ssid" ]]; then
+    printf 'Wi-Fi %s' "$ssid"
+  else
+    printf 'Wi-Fi is Down'
+  fi
+}
+
+battery() {
+  [[ -d "$BATTERY_DIR" ]] || return 0
+  local status capacity label
+  status=$(<"$BATTERY_DIR/status")
+  capacity=$(<"$BATTERY_DIR/capacity")
+  case "$status" in
+    Charging) label=CHR ;;
+    Discharging) label=BAT ;;
+    Full) label=FULL ;;
+    *) label=UNK ;;
+  esac
+  printf '%s %s%%%s' "$label" "$capacity" "$(battery_remaining "$status")"
+}
+
+# Time to empty or full as " HH:MM", from charge and current (µAh, µA)
+battery_remaining() {
+  local status="$1" now full current target
+  now=$(<"$BATTERY_DIR/charge_now")
+  full=$(<"$BATTERY_DIR/charge_full")
+  current=$(<"$BATTERY_DIR/current_now")
+  ((current > 0)) || return 0
+  case "$status" in
+    Discharging) target=$now ;;
+    Charging) target=$((full - now)) ;;
+    *) return 0 ;;
+  esac
+  local minutes=$((target * 60 / current))
+  printf ' %02d:%02d' $((minutes / 60)) $((minutes % 60))
+}
+
+memory() {
+  local total available
+  read -r total available < <(awk '/^MemTotal:/ {t=$2} /^MemAvailable:/ {a=$2} END {print t, a}' /proc/meminfo)
+  if ((available < LOW_MEMORY_KIB)); then
+    printf 'MEMORY < %s' "$(gibibytes "$available")"
+  else
+    printf '%s / %s' "$(gibibytes $((total - available)))" "$(gibibytes "$available")"
+  fi
+}
+
+gibibytes() {
+  awk -v kib="$1" 'BEGIN {printf "%.1f GiB", kib / 1048576}'
+}
+
+main

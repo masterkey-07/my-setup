@@ -102,7 +102,7 @@ check_tools() {
   done
   check "nvim (upstream build in ~/.local/opt)" test -x "$HOME/.local/opt/nvim/bin/nvim"
   check "uair" has uair
-  check "uair running (i3bar pomodoro)" pgrep -x uair
+  check "uair running (swaybar pomodoro)" pgrep -x uair
   if want dev; then
     for cmd in go gopls ghcup ghc cabal haskell-language-server-wrapper \
       java mvn gradle kotlin clj; do
@@ -174,7 +174,7 @@ check_link() {
 check_configs() {
   log "config syntax"
   check "zshrc parses" zsh -n "$HOME/.zshrc"
-  has i3 && check "i3 config valid" i3 -C -c "$HOME/.config/i3/config"
+  has sway && check "sway config valid" sway -C -c "$HOME/.config/sway/config"
   has nvim && check "nvim starts cleanly" nvim_starts_cleanly
 }
 
