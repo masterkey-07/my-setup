@@ -1,6 +1,7 @@
 [Desktop Entry]
 Name=Sway (hybrid GPU)
 Comment=Sway on a laptop whose NVIDIA module is loaded (it refuses to start otherwise)
-Exec=sh -lc "exec sway --unsupported-gpu"
+# GDM wraps Exec in double quotes, so only single quotes are safe here
+Exec=sh -lc 'exec sway --unsupported-gpu'
 Type=Application
 DesktopNames=sway
