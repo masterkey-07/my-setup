@@ -108,6 +108,10 @@ _source_without_aliases() {
 export SDKMAN_DIR="$HOME/.sdkman"
 [ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ] && _source_without_aliases "$SDKMAN_DIR/bin/sdkman-init.sh"
 
+# Android Command Line Tools
+export ANDROID_HOME=$HOME/Android/Sdk
+export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH
+
 # NVM
 # Lazy-load nvm: only sourced the first time node/npm/npx/nvm is run
 export NVM_DIR="$HOME/.nvm"
@@ -125,3 +129,9 @@ nvm() { _load_nvm; nvm "$@"; }
 
 # zoxide must be initialized last
 eval "$(zoxide init zsh)"
+
+## [Completion]
+## Completion scripts setup. Remove the following line to uninstall
+[[ -f /home/vjchave/.dart-cli-completion/zsh-config.zsh ]] && . /home/vjchave/.dart-cli-completion/zsh-config.zsh || true
+## [/Completion]
+
