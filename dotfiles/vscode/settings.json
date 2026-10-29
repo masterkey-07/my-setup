@@ -2,11 +2,11 @@
   "terminal.integrated.profiles.linux": {
     "bash": {
       "path": "bash",
-      "icon": "terminal-bash"
+      "icon": "terminal-bash",
     },
     "zsh": {
-      "path": "/usr/bin/zsh"
-    }
+      "path": "/usr/bin/zsh",
+    },
   },
   "terminal.integrated.defaultProfile.linux": "zsh",
   "workbench.activityBar.location": "top",
@@ -14,29 +14,34 @@
   "workbench.colorTheme": "Monokai",
   "editor.formatOnSave": true,
   "[javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
   },
   "[json]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
   },
   "claudeCode.preferredLocation": "panel",
   "claudeCode.hideOnboarding": true,
   "claudeCode.focusView": true,
   "git.autofetch": true,
   "[html]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
   },
   "[css]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
   },
   "[markdown]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
   },
   "[jsonc]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
   },
   "git.openRepositoryInParentFolders": "always",
   "editor.inlineSuggest.enabled": false,
   "redhat.telemetry.enabled": false,
-  "claudeCode.environmentVariables": []
+  "claudeCode.environmentVariables": [],
+  "window.menuBarVisibility": "compact",
+  "window.commandCenter": false,
+  "workbench.layoutControl.enabled": false,
+  "workbench.browser.showInTitleBar": false,
+  "chat.titleBar.openInAgentsWindow.enabled": false,
 }
