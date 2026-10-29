@@ -11,17 +11,17 @@ symlinks the configs. It is safe to re-run: steps that are already done are skip
 
 ## What gets installed
 
-| Step     | What                                                                                                                                                                                        |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `repos`  | apt sources: Google Chrome, Brave, VS Code, Claude Desktop (comm), AnyDesk (comm), Dart (dev); multiverse + i386                                                                            |
-| `apt`    | [packages/core.txt](packages/core.txt) + the optional groups below; Chrome policy (KeePassXC-Browser, no built-in password manager)                                                         |
-| `shell`  | oh-my-zsh, zsh-autosuggestions / syntax-highlighting / interactive-cd, starship, Caskaydia Cove Nerd Font, zsh as default shell                                                             |
-| `tools`  | bottom (`btm`), procs, tokei, Neovim, uv, nvm + Node LTS, Claude Code, rustup, uair (pomodoro); with `dev`: rust-analyzer, gopls, ghcup, SDKMAN! (Java, Maven, Gradle, Kotlin), Clojure CLI |
-| `apps`   | Obsidian, Discord, Steam (.debs from upstream)                                                                                                                                              |
-| `vscode` | extensions from [dotfiles/vscode/extensions.txt](dotfiles/vscode/extensions.txt)                                                                                                            |
-| `sync`   | Syncthing service, `~/Books` and `~/Vault` (versioned) folders                                                                                                                              |
-| `link`   | symlinks the configs below (KeePassXC ones are copied once)                                                                                                                                 |
-| `post`   | `gh auth login`, clones my Knowledge vault to `~/Knowledge`                                                                                                                                 |
+| Step     | What                                                                                                                                                                                                                            |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `repos`  | apt sources: Google Chrome, Brave, VS Code, Claude Desktop (comm), AnyDesk (comm), Dart (dev); multiverse + i386                                                                                                                |
+| `apt`    | [packages/core.txt](packages/core.txt) + the optional groups below; Chrome policy (KeePassXC-Browser, no built-in password manager)                                                                                             |
+| `shell`  | oh-my-zsh, zsh-autosuggestions / syntax-highlighting / interactive-cd, starship, Caskaydia Cove Nerd Font, zsh as default shell                                                                                                 |
+| `tools`  | bottom (`btm`), procs, tokei, Neovim, uv, nvm + Node LTS, Claude Code, rustup, uair (pomodoro), Microsoft Edit (built from source); with `dev`: rust-analyzer, gopls, ghcup, SDKMAN! (Java, Maven, Gradle, Kotlin), Clojure CLI |
+| `apps`   | Obsidian, Discord, Steam (.debs from upstream)                                                                                                                                                                                  |
+| `vscode` | extensions from [dotfiles/vscode/extensions.txt](dotfiles/vscode/extensions.txt)                                                                                                                                                |
+| `sync`   | Syncthing service, `~/Books` and `~/Vault` (versioned) folders                                                                                                                                                                  |
+| `link`   | symlinks the configs below (KeePassXC ones are copied once)                                                                                                                                                                     |
+| `post`   | `gh auth login`, clones my Knowledge vault to `~/Knowledge`                                                                                                                                                                     |
 
 Optional groups (all on by default, each one can be skipped with `--skip`):
 

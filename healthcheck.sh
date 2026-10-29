@@ -97,7 +97,7 @@ check_shell() {
 check_tools() {
   log "tools"
   local cmd
-  for cmd in btm procs tokei tree-sitter bat uv node npm claude rustup; do
+  for cmd in btm procs tokei tree-sitter bat uv node npm claude rustup edit; do
     check "$cmd" has "$cmd"
   done
   check "nvim (upstream build in ~/.local/opt)" test -x "$HOME/.local/opt/nvim/bin/nvim"

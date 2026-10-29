@@ -97,6 +97,23 @@ if ! has uair; then
   cargo install --locked --root "$HOME/.local" uair
 fi
 
+# Microsoft Edit: built from source with its size-optimized release config,
+# which needs nightly features (RUSTC_BOOTSTRAP unlocks them on stable) and
+# rust-src for build-std. Pinned to the latest release: main doesn't always
+# compile on stable. Rebuilt when a new release is out
+EDIT_SRC="$HOME/.local/src/edit"
+edit_latest="$(gh_latest_tag microsoft/edit)"
+# `edit --version` prints "edit version X.Y.Z"; release tags are "vX.Y.Z"
+edit_installed="$(edit --version 2>/dev/null | awk '{print "v" $NF}')" || edit_installed=""
+if [[ "$edit_installed" != "$edit_latest" ]]; then
+  info "Microsoft Edit ${edit_installed:-(none)} -> $edit_latest"
+  rustup component add rust-src
+  rm -rf "$EDIT_SRC"
+  git clone --depth 1 --branch "$edit_latest" https://github.com/microsoft/edit.git "$EDIT_SRC"
+  (cd "$EDIT_SRC" && RUSTC_BOOTSTRAP=1 cargo build --locked --release --config .cargo/release.toml)
+  install -m 755 "$EDIT_SRC/target/release/edit" "$HOME/.local/bin/edit"
+fi
+
 # Everything below is the dev group's language toolchains
 want dev || exit 0
 
