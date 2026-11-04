@@ -46,13 +46,6 @@ Groups: ${GROUPS_OPTIONAL[*]}
 EOF
 }
 
-# is_one_of <name> <choice>...: true when name is among the choices
-is_one_of() {
-  local name="$1" choice; shift
-  for choice in "$@"; do [[ "$name" == "$choice" ]] && return 0; done
-  return 1
-}
-
 ONLY="" SKIP=""
 while (($#)); do
   case "$1" in

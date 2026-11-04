@@ -32,7 +32,7 @@ alias remove="sudo apt remove"
 alias update-system="update && upgrade && dist-upgrade && autoremove"
 
 # RUST CLI ALIAS
-alias analyze="btm"
+alias analyze="btop"
 alias top="procs"
 alias hell="tokei"
 alias dir="eza --icons"
@@ -71,8 +71,6 @@ alias edpon="swaymsg output eDP-1 enable"
 
 # FUNCTIONS
 c () { z "$@" && l; }
-# Without args, `z` would jump to $HOME, so only jump when a target is given
-claudeit () { { (( $# == 0 )) || z "$@"; } && claude; }
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 # Python
@@ -127,11 +125,10 @@ _load_nvm() {
 }
 nvm() { _load_nvm; nvm "$@"; }
 
+# Dart CLI completion (written by `dart --enable-completion`; this file
+# already has the line, so tell dart no when it offers to add it again)
+[[ -f "$HOME/.dart-cli-completion/zsh-config.zsh" ]] && . "$HOME/.dart-cli-completion/zsh-config.zsh"
+
 # zoxide must be initialized last
 eval "$(zoxide init zsh)"
-
-## [Completion]
-## Completion scripts setup. Remove the following line to uninstall
-[[ -f /home/vjchave/.dart-cli-completion/zsh-config.zsh ]] && . /home/vjchave/.dart-cli-completion/zsh-config.zsh || true
-## [/Completion]
 

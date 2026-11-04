@@ -28,7 +28,8 @@ sys.exit(0 if json.load(open(sys.argv[1])).get("account_info") else 1)' "$CHROME
 
 if has google-chrome-stable && ! chrome_signed_in; then
   log "Google login in Chrome"
-  if [[ -n "${DISPLAY:-}" && -t 0 ]]; then
+  # Either display: a sway session may run without Xwayland
+  if [[ -n "${WAYLAND_DISPLAY:-}${DISPLAY:-}" && -t 0 ]]; then
     google-chrome-stable "$CHROME_SIGNIN_URL" >/dev/null 2>&1 &
     read -rp "    sign in (and turn on sync) in Chrome, then press Enter "
     chrome_signed_in || warn "Chrome still not signed in; sign in later from its profile menu"

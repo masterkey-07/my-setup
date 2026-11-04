@@ -1,0 +1,7 @@
+# Overrides /etc/xdg/autostart/nm-applet.desktop, which dex (sway config)
+# would otherwise start: waybar's network block already shows the wifi
+# and opens nmtui on click, so the tray icon is redundant
+[Desktop Entry]
+Type=Application
+Name=Network
+Hidden=true

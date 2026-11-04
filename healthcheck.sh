@@ -8,19 +8,22 @@
 # Exits 1 when any check fails; fix with ./install.sh (or --only <step>).
 set -uo pipefail
 
+SETUP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/lib.sh
+source "$SETUP_DIR/scripts/lib.sh"
+
 SKIP=""
 while (($#)); do
   case "$1" in
-    --skip) SKIP+=" ${2:?--skip needs a group}"; shift 2 ;;
+    --skip)
+      is_one_of "${2:?--skip needs a group}" "${GROUPS_OPTIONAL[@]}" \
+        || die "unknown group: $2 (groups: ${GROUPS_OPTIONAL[*]})"
+      SKIP+=" $2"; shift 2 ;;
     -h|--help) sed -n '2,8s/^# \{0,1\}//p' "$0"; exit 0 ;;
     *) echo "unknown option: $1 (try --help)" >&2; exit 1 ;;
   esac
 done
 export SKIP
-
-SETUP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=scripts/lib.sh
-source "$SETUP_DIR/scripts/lib.sh"
 
 OK="$(printf '\033[1;32mok\033[0m')"
 FAIL="$(printf '\033[1;31mFAIL\033[0m')"
@@ -66,9 +69,8 @@ is_installed() { dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q 'instal
 # Only missing packages are listed, one summary line per list keeps the output short
 check_packages() {
   log "apt packages"
-  local lists=(core) list pkg
-  for list in "${GROUPS_OPTIONAL[@]}"; do want "$list" && lists+=("$list"); done
-  for list in "${lists[@]}"; do
+  local list pkg
+  while read -r list; do
     local missing=() total=0
     while read -r pkg; do
       total=$((total + 1))
@@ -79,7 +81,7 @@ check_packages() {
     else
       pass "packages/$list.txt ($total)"
     fi
-  done
+  done < <(wanted_lists)
 }
 
 check_shell() {
@@ -92,17 +94,18 @@ check_shell() {
   check "starship" has starship
   check "Caskaydia Cove Nerd Font" bash -c 'fc-list | grep -qi CaskaydiaCove'
   check "default shell is zsh" test "$(getent passwd "$USER" | cut -d: -f7)" = "$(command -v zsh)"
+  check "in video group (brightness without sudo)" bash -c "id -nG '$USER' | grep -qw video"
 }
 
 check_tools() {
   log "tools"
   local cmd
-  for cmd in btm procs tokei tree-sitter bat uv node npm claude rustup edit; do
+  for cmd in procs tokei tree-sitter bat uv node npm claude rustup edit; do
     check "$cmd" has "$cmd"
   done
   check "nvim (upstream build in ~/.local/opt)" test -x "$HOME/.local/opt/nvim/bin/nvim"
   check "uair" has uair
-  check "uair running (swaybar pomodoro)" pgrep -x uair
+  check "uair running (waybar pomodoro)" pgrep -x uair
   if want dev; then
     for cmd in go gopls ghcup ghc cabal haskell-language-server-wrapper \
       java mvn gradle kotlin clj; do
@@ -121,13 +124,46 @@ check_apps() {
   log "apps"
   check "obsidian" has obsidian
   check "Chrome is the default browser" test "$(xdg-settings get default-web-browser 2>/dev/null)" = google-chrome.desktop
-  if lspci 2>/dev/null | grep -qi 'vga.*nvidia\|3d.*nvidia'; then
-    check "NVIDIA driver loaded" nvidia-smi
+  check_login_screen
+  if has_nvidia_gpu; then
+    check_nvidia
   fi
   want office && check "readest" has readest
   want office && check "clamscan (book-check)" has clamscan
   want comm && check "discord" has discord
   want gaming && check "steam" has steam
+}
+
+# GDM login screen and the gtklock lock screen (scripts/50-apps.sh, sway/config)
+check_login_screen() {
+  check "GDM is the display manager" bash -c \
+    '[[ "$(readlink -f /etc/systemd/system/display-manager.service)" == */gdm*.service ]]'
+  check "gtklock" has gtklock
+  check "blurred lock screen wallpaper" test -s "${XDG_CACHE_HOME:-$HOME/.cache}/lock-wallpaper.jpg"
+}
+
+# check_nvidia: nvidia-smi alone can't say why it can't reach the driver, and
+# each cause has its own fix: a missing module needs a package, an unloaded
+# one usually a reboot
+check_nvidia() {
+  local label="NVIDIA driver loaded" kernel boot_kernel smi_output
+  kernel="$(uname -r)"
+  if ! has nvidia-smi; then
+    fail "$label (no driver installed; run ./install.sh --only apt)"
+  elif ! has_nvidia_module "$kernel"; then
+    fail "$label (no nvidia module for the running kernel $kernel; ./install.sh --only apt installs it or prints the fix)"
+  elif ! is_nvidia_module_loaded; then
+    fail "$label (module installed but not loaded; reboot, or see: sudo dmesg | grep -i nvidia)"
+  elif ! smi_output="$(nvidia-smi 2>&1)"; then
+    fail "$label (module loaded but nvidia-smi failed: $(head -1 <<<"$smi_output"))"
+  else
+    pass "$label"
+  fi
+
+  boot_kernel="$(default_boot_kernel)"
+  if [[ -n "$boot_kernel" && "$boot_kernel" != "$kernel" ]]; then
+    check "NVIDIA module for the next boot's kernel $boot_kernel" has_nvidia_module "$boot_kernel"
+  fi
 }
 
 check_vscode() {
@@ -146,9 +182,14 @@ check_sync() {
   check "syncthing service running" systemctl is-active "syncthing@$USER.service"
   check "syncthing shares ~/Books" bash -c 'syncthing cli config folders list | grep -qix my-books'
   check "syncthing shares ~/Vault" bash -c 'syncthing cli config folders list | grep -qix my-vault'
+  # shellcheck disable=SC2088  # a label, not a path
   check "~/Vault keeps old versions" bash -c \
     '[[ "$(syncthing cli config folders my-vault versioning type get)" == staggered ]]'
   check "weekly book-check of ~/Books" systemctl --user is-enabled book-check.timer
+  # A stale key leaves the tray icon up but stuck on "disconnected"
+  # shellcheck disable=SC2016  # expanded by the inner bash
+  check "syncthingtray has the current API key" bash -c \
+    'grep -qF "@ByteArray($(syncthing cli config gui apikey get))" ~/.config/syncthingtray.ini'
 }
 
 check_links() {
@@ -176,6 +217,19 @@ check_configs() {
   check "zshrc parses" zsh -n "$HOME/.zshrc"
   has sway && check "sway config valid" sway -C -c "$HOME/.config/sway/config"
   has nvim && check "nvim starts cleanly" nvim_starts_cleanly
+  has shellcheck && check "repo shell scripts pass shellcheck" shell_scripts_pass_shellcheck
+}
+
+# Every shell script in the repo: the entry points, the step scripts, the
+# shell ones in dotfiles/bin (others are Python) and the sourced helpers.
+# -x -P SCRIPTDIR follows the `source` lines the way each script resolves them
+shell_scripts_pass_shellcheck() {
+  local scripts
+  mapfile -t scripts < <(
+    find "$SETUP_DIR"/install.sh "$SETUP_DIR"/healthcheck.sh "$SETUP_DIR"/scripts "$DOTFILES"/bin \
+      -maxdepth 1 -type f -exec grep -lE '^#!.*\b(bash|sh)$' {} +)
+  scripts+=("$SETUP_DIR/scripts/lib.sh" "$DOTFILES/waybar/blocks.sh")
+  (cd "$SETUP_DIR" && shellcheck -x -P SCRIPTDIR -S warning "${scripts[@]}")
 }
 
 # nvim exits 0 even when the config errors, so look for errors in what it printed

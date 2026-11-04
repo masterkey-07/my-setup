@@ -8,13 +8,6 @@ source "$SETUP_DIR/scripts/lib.sh"
 mkdir -p "$HOME/.local/bin"
 export PATH="$HOME/.local/bin:$PATH"
 
-# bottom (btm): .deb on GitHub
-if ! has btm; then
-  info "bottom"
-  url="$(gh_asset ClementTsang/bottom '/bottom_[0-9.]+-[0-9]+_amd64\.deb$')"
-  install_deb_url "$url"
-fi
-
 # procs: single binary in a zip
 if ! has procs; then
   info "procs"

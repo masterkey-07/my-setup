@@ -24,6 +24,52 @@ has() { command -v "$1" >/dev/null 2>&1; }
 # want <group>: false when the group was passed to --skip
 want() { [[ " ${SKIP:-} " != *" $1 "* ]]; }
 
+# is_one_of <name> <choice>...: true when name is among the choices
+is_one_of() {
+  local name="$1" choice; shift
+  for choice in "$@"; do [[ "$name" == "$choice" ]] && return 0; done
+  return 1
+}
+
+# wanted_lists: the packages/<list>.txt names to install, core first
+wanted_lists() {
+  local group
+  echo core
+  for group in "${GROUPS_OPTIONAL[@]}"; do
+    if want "$group"; then echo "$group"; fi
+  done
+}
+
+has_nvidia_gpu() { lspci 2>/dev/null | grep -qi 'vga.*nvidia\|3d.*nvidia'; }
+
+# The NVIDIA kernel module comes prebuilt for each kernel in its own package
+# (linux-modules-nvidia-<flavor>-<kernel>), published separately from the
+# kernel. A kernel that arrives before its module (e.g. from -proposed)
+# leaves nvidia-smi installed but with no driver to talk to.
+NVIDIA_MODULE=nvidia
+NVIDIA_DRIVER_PREFIX=nvidia-driver-
+
+# has_nvidia_module [kernel]: true when that kernel (default: the running
+# one) has an nvidia module to load
+has_nvidia_module() { modinfo -k "${1:-$(uname -r)}" "$NVIDIA_MODULE" >/dev/null 2>&1; }
+
+# is_nvidia_module_loaded: /sys/module needs no root, unlike reading dmesg
+is_nvidia_module_loaded() { [[ -d "/sys/module/$NVIDIA_MODULE" ]]; }
+
+# nvidia_driver_flavor: the installed driver's branch, e.g. 595-open from
+# nvidia-driver-595-open; it names the matching module packages
+nvidia_driver_flavor() {
+  dpkg-query -W -f='${db:Status-Abbrev} ${Package}\n' "${NVIDIA_DRIVER_PREFIX}[0-9]*" 2>/dev/null \
+    | awk -v prefix="$NVIDIA_DRIVER_PREFIX" '$1 == "ii" { print substr($2, length(prefix) + 1); exit }'
+}
+
+# nvidia_module_package <kernel>: Ubuntu's prebuilt module package for it
+nvidia_module_package() { printf 'linux-modules-nvidia-%s-%s\n' "$(nvidia_driver_flavor)" "$1"; }
+
+# default_boot_kernel: the kernel the next boot picks (GRUB's first entry,
+# which /boot/vmlinuz follows), so a missing module shows up before rebooting
+default_boot_kernel() { readlink /boot/vmlinuz 2>/dev/null | sed 's/^vmlinuz-//'; }
+
 # Scratch dir for downloads, removed on exit
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
@@ -32,7 +78,7 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 apt_install() {
   local pkg available=() missing=()
   for pkg in "$@"; do
-    if apt-cache policy "$pkg" 2>/dev/null | sed -n 's/ *Candidate: //p' | grep -qv '(none)'; then
+    if has_apt_candidate "$pkg"; then
       available+=("$pkg")
     else
       missing+=("$pkg")
@@ -41,6 +87,11 @@ apt_install() {
   ((${#missing[@]})) && warn "not found in apt, skipped: ${missing[*]}"
   ((${#available[@]})) || return 0
   sudo DEBIAN_FRONTEND=noninteractive apt-get install -y "${available[@]}"
+}
+
+# has_apt_candidate <pkg>: true when an enabled apt source offers the package
+has_apt_candidate() {
+  apt-cache policy "$1" 2>/dev/null | sed -n 's/ *Candidate: //p' | grep -qv '(none)'
 }
 
 # read_list <file>: package names from a list, ignoring comments and blanks
@@ -73,7 +124,7 @@ gh_asset() {
   local repo="$1" pattern="$2" tag="${3:-}" api release url
   if [[ -n "$tag" ]]; then api="https://api.github.com/repos/$repo/releases/tags/$tag"
   else api="https://api.github.com/repos/$repo/releases/latest"; fi
-  release="$(curl -fsSL "$api")" \
+  release="$(github_api "$api")" \
     || die "GitHub API request failed for $repo (rate limit? 60 requests/hour without a token)"
   url="$(grep -oE '"browser_download_url": *"[^"]+"' <<<"$release" | cut -d'"' -f4 | grep -E "$pattern" | head -1)" \
     || die "no release asset matching '$pattern' in $repo"
@@ -83,11 +134,23 @@ gh_asset() {
 # gh_latest_tag <owner/repo>: tag name of the latest release
 gh_latest_tag() {
   local release tag
-  release="$(curl -fsSL "https://api.github.com/repos/$1/releases/latest")" \
+  release="$(github_api "https://api.github.com/repos/$1/releases/latest")" \
     || die "GitHub API request failed for $1 (rate limit? 60 requests/hour without a token)"
   tag="$(grep -oE '"tag_name": *"[^"]+"' <<<"$release" | cut -d'"' -f4)" \
     || die "no latest release tag for $1"
   printf '%s\n' "$tag"
+}
+
+# github_api <url>: GET from the GitHub API, logged in through gh when
+# possible (5000 requests/hour instead of 60, which re-runs can use up)
+github_api() {
+  local token=""
+  if has gh; then token="$(gh auth token 2>/dev/null)" || token=""; fi
+  if [[ -n "$token" ]]; then
+    curl -fsSL -H "Authorization: Bearer $token" "$1"
+  else
+    curl -fsSL "$1"
+  fi
 }
 
 # has_rust_analyzer: rustup puts a rust-analyzer proxy on PATH even when the
@@ -145,11 +208,13 @@ same_content() {
 # link_configs <fn>: call <fn> <source-in-repo> <target> for every config the
 # link step manages (90-link.sh passes link, healthcheck.sh a checker)
 link_configs() {
-  local fn="$1" skill bin unit app
+  local fn="$1" skill bin unit app entry
   "$fn" "$DOTFILES/zsh/.zshrc"            "$HOME/.zshrc"
   "$fn" "$DOTFILES/git/.gitconfig"        "$HOME/.gitconfig"
   "$fn" "$DOTFILES/kitty/kitty.conf"      "$HOME/.config/kitty/kitty.conf"
   "$fn" "$DOTFILES/sway"                  "$HOME/.config/sway"
+  "$fn" "$DOTFILES/waybar"                "$HOME/.config/waybar"
+  "$fn" "$DOTFILES/gtklock"               "$HOME/.config/gtklock"
   "$fn" "$DOTFILES/rofi/config.rasi"      "$HOME/.config/rofi/config.rasi"
   "$fn" "$DOTFILES/nvim"                  "$HOME/.config/nvim"
   "$fn" "$DOTFILES/vscode/settings.json"  "$HOME/.config/Code/User/settings.json"
@@ -180,6 +245,11 @@ link_configs() {
   # Rofi launcher entries (e.g. web UIs opened as Chrome app windows).
   for app in "$DOTFILES"/applications/*.desktop; do
     "$fn" "$app" "$HOME/.local/share/applications/$(basename "$app")"
+  done
+
+  # Autostart overrides; Hidden=true disables a system entry dex would start
+  for entry in "$DOTFILES"/autostart/*.desktop; do
+    "$fn" "$entry" "$HOME/.config/autostart/$(basename "$entry")"
   done
 }
 

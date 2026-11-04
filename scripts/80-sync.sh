@@ -47,3 +47,49 @@ if syncthing_folder "$SYNCTHING_VAULT_ID" Vault "$HOME/Vault" &&
   syncthing cli config folders "$SYNCTHING_VAULT_ID" versioning type set "$VAULT_VERSIONING" \
     || warn "could not turn on versioning for ~/Vault; set it in the web UI"
 fi
+
+# Syncthing Tray, connected to the service above. Filled in from a template
+# instead of linked: it needs this machine's API key, which stays out of git,
+# and the app rewrites the file whenever a setting changes.
+SYNCTHINGTRAY_TEMPLATE="$DOTFILES/syncthingtray/syncthingtray.ini"
+SYNCTHINGTRAY_CONFIG="$HOME/.config/syncthingtray.ini"
+
+# syncthing_gui_url: where the service's web UI and API listen
+syncthing_gui_url() {
+  local scheme=http
+  [[ "$(syncthing cli config gui raw-use-tls get)" == true ]] && scheme=https
+  printf '%s://%s\n' "$scheme" "$(syncthing cli config gui raw-address get)"
+}
+
+# write_syncthingtray_config <api-key>: owner-only, since it holds the key
+write_syncthingtray_config() {
+  local api_key="$1" url
+  url="$(syncthing_gui_url)"
+  mkdir -p "$(dirname "$SYNCTHINGTRAY_CONFIG")"
+  (
+    umask 077
+    sed -e "s|@SYNCTHING_URL@|$url|" \
+        -e "s|@SYNCTHING_API_KEY@|$api_key|" \
+        -e "s|@SYNCTHING_SERVICE@|$SYNCTHING_SERVICE|" \
+        "$SYNCTHINGTRAY_TEMPLATE" >"$SYNCTHINGTRAY_CONFIG"
+  )
+}
+
+# update_syncthingtray_api_key <api-key>: a fresh Syncthing config comes with
+# a new key; swap only that line so the tray's other settings survive
+update_syncthingtray_api_key() {
+  sed -i 's|^connections\\1\\apiKey=.*|connections\\1\\apiKey=@ByteArray('"$1"')|' "$SYNCTHINGTRAY_CONFIG"
+}
+
+if has syncthingtray; then
+  api_key="$(syncthing cli config gui apikey get)" || api_key=""
+  if [[ -z "$api_key" ]]; then
+    warn "could not read the syncthing API key; set up Syncthing Tray with its wizard"
+  elif [[ ! -f "$SYNCTHINGTRAY_CONFIG" ]]; then
+    info "syncthingtray config"
+    write_syncthingtray_config "$api_key"
+  elif ! grep -qF "@ByteArray($api_key)" "$SYNCTHINGTRAY_CONFIG"; then
+    info "syncthingtray: new syncthing API key"
+    update_syncthingtray_api_key "$api_key"
+  fi
+fi

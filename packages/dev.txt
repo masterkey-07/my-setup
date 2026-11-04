@@ -13,6 +13,9 @@ python3-dev python3-venv rlwrap libssl-dev zlib1g-dev libffi-dev libgmp-dev
 # (build-essential and pkg-config are already in core.txt)
 cmake ninja-build clang libgtk-3-dev
 
+# Lints this repo's shell scripts (healthcheck.sh runs it)
+shellcheck
+
 # Databases
 postgresql
 

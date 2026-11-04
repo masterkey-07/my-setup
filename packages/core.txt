@@ -4,17 +4,23 @@ build-essential pkg-config curl wget git gh unzip zip tree
 # Terminal + shell
 zsh kitty fzf zoxide eza bat fd-find ripgrep ncdu wl-clipboard
 
-# System monitoring
-psensor lm-sensors cpupower-gui speedtest-cli
+# System monitoring (btop: the `analyze` alias and the bar's memory and temperature blocks)
+psensor lm-sensors cpupower-gui speedtest-cli btop
 
-# Sway desktop and its helpers (grim, slurp and swappy: bin/screenshot;
-# the portal: screen sharing; brightnessctl: brightness keys)
-sway swaybg swayidle swaylock xdg-desktop-portal-wlr grim slurp swappy dex rofi network-manager-gnome pulseaudio-utils brightnessctl bibata-cursor-theme
+# Sway desktop and its helpers (grim and slurp: bin/screenshot;
+# the portal: screen sharing; brightnessctl: brightness keys; waybar: the bar;
+# playerctl: bin/spotify-ticker; jq: the bar's custom blocks;
+# pulseaudio-utils: paplay in bin/pomodoro-alert)
+sway waybar swaybg swayidle xdg-desktop-portal-wlr grim slurp dex rofi pulseaudio-utils brightnessctl bibata-cursor-theme playerctl jq
+# Lock screen: gtklock with its avatar and power-button modules (sway/config's
+# $lock); imagemagick blurs the wallpaper for it (bin/lock-wallpaper)
+gtklock gtklock-userinfo-module gtklock-powerbar-module imagemagick
 # Pomodoro alerts (pomodoro-alert): notify-send and the freedesktop sounds
 libnotify-bin sound-theme-freedesktop
 
-# Main apps (syncthing runs as a service, set up in 20-apt.sh)
-google-chrome-stable brave-browser code syncthing
+# Main apps (syncthing runs as a service, set up in 20-apt.sh; syncthingtray
+# is its tray icon, started by the sway config)
+google-chrome-stable brave-browser code syncthing syncthingtray
 
 # Password safe; -full is the build with browser integration and keepassxc-proxy
 # (vault synced by syncthing, settings seeded in 90-link.sh)
