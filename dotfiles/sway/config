@@ -22,23 +22,26 @@ exec dex --autostart --environment sway
 
 # Lock after 10 min idle, before suspend and on `loginctl lock-session` ($mod+l below);
 # screens power off after 15 min idle
-set $lock swaylock -f -c 111111
+# gtklock (config and theme in ~/.config/gtklock) over the blurred wallpaper
+set $lock gtklock --daemonize --layout ~/.config/gtklock/layout.ui --background ~/.cache/lock-wallpaper.jpg
 exec swayidle -w \
         timeout 600 '$lock' \
         timeout 900 'swaymsg "output * power off"' resume 'swaymsg "output * power on"' \
         lock '$lock' \
         before-sleep '$lock'
 
-# NetworkManager tray icon. swaybar only shows StatusNotifierItem icons,
-# which nm-applet emits only with --indicator.
-exec nm-applet --indicator
-
 # Password safe, started minimized to the tray: it is also the Secret Service
 # keyring (gh, libsecret apps) and the SSH agent, so it must run from login
 exec keepassxc
+# Syncthing's tray icon; --wait holds it until waybar's tray is up
+exec syncthingtray --wait
 
 # Wallpaper on every output, including ones plugged in later
 output * bg ~/.config/sway/wallpapers/tree.jpeg fill
+# Blurred copy of it for the lock screen. On every reload too, so a new
+# wallpaper reaches the lock screen without logging out; it is only redone
+# when the wallpaper changes
+exec_always lock-wallpaper
 
 # External monitor above the laptop screen, laptop centered under it
 output HDMI-A-1 position 0 0
@@ -52,18 +55,19 @@ exec ~/.local/bin/hdmi-watch
 # Move the mouse pointer to the center of a window when it gets focus
 mouse_warping container
 
-# Pomodoro timer, shown in the bar through sway-status (see uair-status)
+# Pomodoro timer, shown in waybar's pomodoro block (see uair-status)
 exec ~/.local/bin/uair-status
 
 # Hide the pointer after 5s idle and while typing
 seat seat0 hide_cursor 5000
 seat seat0 hide_cursor when-typing enable
 
-# Use pactl to adjust volume in PulseAudio.
-bindsym XF86AudioRaiseVolume exec pactl set-sink-volume @DEFAULT_SINK@ +10%
-bindsym XF86AudioLowerVolume exec pactl set-sink-volume @DEFAULT_SINK@ -10%
-bindsym XF86AudioMute exec pactl set-sink-mute @DEFAULT_SINK@ toggle
-bindsym XF86AudioMicMute exec pactl set-source-mute @DEFAULT_SOURCE@ toggle
+# Volume keys (PipeWire); -l 1.0 caps raising at 100%, like waybar's
+# sound block ("max-volume"), since above that the sound distorts
+bindsym XF86AudioRaiseVolume exec wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+
+bindsym XF86AudioLowerVolume exec wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-
+bindsym XF86AudioMute exec wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle
+bindsym XF86AudioMicMute exec wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle
 
 # Laptop screen brightness
 bindsym XF86MonBrightnessUp exec brightnessctl set 5%+
@@ -168,23 +172,12 @@ mode "resize" {
 
 bindsym $mod+r mode "resize"
 
-# swaybar with the system information from sway-status
+# Waybar, config and theme in ~/.config/waybar; hide/show follows bar mode
 bar {
-        status_command ~/.local/bin/sway-status
-        font pango:Caskaydia Cove Nerd Font Bold 10
-        # keep the statusline off the laptop panel's right edge (bezel hides it)
-        status_edge_padding 8
-        colors {
-                background #1e1e1e33
-                statusline #ffffff
-                separator  #ffffff
-                # class            border    backgr.   text
-                focused_workspace  #4D9DE8   #1F4FBF   #ffffff
-                active_workspace   #5f676a   #5f676a99 #ffffff
-                inactive_workspace #00000000 #00000000 #ffffff
-                urgent_workspace   #900000   #900000CC #ffffff
-        }
+        swaybar_command waybar
 }
+# A reload restarts waybar, whose new tray forgets KeePassXC's icon
+exec_always ~/.local/bin/tray-reregister
 
 # Orientation
 

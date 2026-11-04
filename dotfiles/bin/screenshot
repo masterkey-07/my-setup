@@ -1,5 +1,5 @@
 #!/bin/sh
-# Area screenshot (bound to $mod+p in the sway config): pick an area, then
-# annotate, copy or save it in swappy. Escape in slurp cancels.
+# Area screenshot (bound to $mod+p in the sway config): pick an area and copy
+# it straight to the clipboard. Escape in slurp cancels.
 area=$(slurp) || exit 0
-grim -g "$area" - | swappy -f -
+grim -g "$area" - | wl-copy --type image/png

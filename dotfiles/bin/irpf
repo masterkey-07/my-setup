@@ -33,6 +33,8 @@ cmd_install() {
   [[ -e $dir ]] && die "$dir already exists (the app updates itself within the year)"
 
   tmp=$(mktemp -d)
+  # Expanded now on purpose: tmp is local and gone by the time EXIT fires
+  # shellcheck disable=SC2064
   trap "rm -rf '$tmp'" EXIT
   echo "Downloading ${url##*/}"
   curl -fL --progress-bar -o "$tmp/installer" "$url"

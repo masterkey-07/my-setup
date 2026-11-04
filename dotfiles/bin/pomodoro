@@ -182,6 +182,8 @@ big_text() {
     for ((i = 0; i < ${#text}; i++)); do
       char=${text:i:1}
       [[ -n "${font[$char]:-}" ]] || continue
+      # Split on purpose: a glyph is its rows separated by spaces, digits only
+      # shellcheck disable=SC2206
       local -a glyph=(${font[$char]})
       bits=${glyph[row]}
       for ((bit = 0; bit < ${#bits}; bit++)); do

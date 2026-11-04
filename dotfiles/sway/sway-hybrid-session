@@ -1,0 +1,21 @@
+#!/bin/sh
+# Starts the "Sway (hybrid GPU)" login session (installed to /usr/local/bin
+# by scripts/20-apt.sh). A script, so the .desktop file's Exec needs no quoting.
+
+# GDM sets it from the session's DesktopNames already; set here too because
+# xdg-desktop-portal needs it to pick the wlr backend
+export XDG_CURRENT_DESKTOP=sway
+
+# The login manager runs this with a bare system PATH; ~/.profile adds
+# ~/.local/bin, where waybar's block scripts (claude-bar, pomodoro-block,
+# spotify-ticker) and uairctl live
+if [ -f "$HOME/.profile" ]; then
+  . "$HOME/.profile"
+fi
+
+# Its own log, so a sway that dies at startup leaves a trace outside the journal
+log_dir="$HOME/.local/state"
+mkdir -p "$log_dir"
+
+# --unsupported-gpu: sway refuses to start while the NVIDIA module is loaded
+exec sway --unsupported-gpu >"$log_dir/sway.log" 2>&1
